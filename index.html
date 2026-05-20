@@ -4,123 +4,258 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web ePub Creator Pro</title>
-    
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
-    
-    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.snow.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #212529;
+            --border-color: #dee2e6;
+            --primary-color: #5c6bc0;
+        }
+        [data-theme="dark"] {
+            --bg-color: #1a1d24;
+            --card-bg: #222731;
+            --text-color: #f8f9fa;
+            --border-color: #3a4252;
+            --primary-color: #7986cb;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        /* Top Navigation Header & Auth Section */
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .auth-panel {
+            display: flex;
+            align-items: center;
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+        }
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-danger { background-color: #e57373; }
+        .btn-success { background-color: #2ecc71; width: 100%; justify-content: center; font-size: 16px; padding: 12px; }
+        .btn-tool { background-color: #4a5568; padding: 6px 10px; font-size: 12px; }
+        
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        input[type="text"], select, input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            box-sizing: border-box;
+        }
+        /* Chapter Tab Navigation */
+        .tabs-row {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .chapter-tab {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .chapter-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .chapter-tools {
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        #editor-container {
+            height: 250px;
+            background-color: white;
+            color: black;
+            border-radius: 0 0 8px 8px;
+        }
+        .ql-toolbar {
+            background-color: #eee;
+            border-radius: 8px 8px 0 0;
+        }
+        .toc-preview {
+            background-color: var(--bg-color);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px dashed var(--border-color);
+        }
+        .toc-preview ul { padding-left: 20px; margin: 5px 0; }
+        .toc-preview li { cursor: pointer; color: var(--primary-color); margin-bottom: 4px; }
+    </style>
 </head>
 <body>
 
-    <header class="app-header">
-        <div class="header-main">
-            <h1 id="txt-app-title">📘 Web ePub Creator Pro</h1>
-            <div class="header-controls">
-                <select id="lang-select" class="control-select">
-                    <option value="my">မြန်မာစာ</option>
-                    <option value="en">English</option>
-                </select>
-                <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
-                    <span class="mode-icon">🌙</span>
-                </button>
+<div class="container">
+
+    <div class="header-bar">
+        <h2 id="txt-app-title" style="margin:0; font-size: 18px;">📘 Web ePub Creator Pro</h2>
+        <div class="header-right">
+            <select id="lang-select" style="width: auto; padding: 4px 8px; font-size: 13px;">
+                <option value="my">မြန်မာစာ</option>
+                <option value="en">English</option>
+            </select>
+            
+            <button id="theme-toggle" class="btn btn-tool"><span class="mode-icon">🌙</span></button>
+
+            <div class="auth-panel">
+                <div id="auth-logged-out">
+                    <button id="login-btn" class="btn btn-tool">🔑 Login</button>
+                </div>
+                <div id="auth-logged-in" style="display: none;" class="user-profile">
+                    <img id="user-avatar" src="" class="avatar" alt="User">
+                    <span id="user-name" style="font-size: 12px; max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">...</span>
+                    <button id="logout-btn" class="btn btn-tool btn-danger" style="padding:4px 6px;">🚪</button>
+                </div>
             </div>
         </div>
-        <p class="subtitle" id="txt-app-subtitle">PDF ဖိုင်များမှ စာသားဆွဲထုတ်၍ အခန်းများစွာပါဝင်သော ePub စာအုပ် ဖန်တီးပါ</p>
-    </header>
+    </div>
 
-    <main class="container">
-        
-        <section class="card">
-            <h2 id="txt-sec-meta">ℹ️ စာအုပ်အချက်အလက်</h2>
+    <p style="font-size: 12px; opacity: 0.8; margin-top: -10px; margin-bottom: 20px;">PDF ဖိုင်များမှ စာသားဆွဲထုတ်၍ အခန်းများစွာပါဝင်သော ePub စာအုပ် ဖန်တီးပါ</p>
+
+    <div class="card">
+        <h3 id="txt-sec-meta" style="margin-top: 0; font-size: 16px;">ℹ️ စာအုပ်အချက်အလက်</h3>
+        <div class="form-group">
+            <label id="txt-lbl-title" for="book-title">စာအုပ်ခေါင်းစဉ်</label>
+            <input type="text" id="book-title" placeholder="ဥပမာ - နွေဦးကဗျာများ">
+        </div>
+        <div class="form-group">
+            <label id="txt-lbl-author" for="book-author">စာရေးဆရာအမည်</label>
+            <input type="text" id="book-author" placeholder="ဥပမာ - မောင်စွမ်းရည်">
+        </div>
+        <div class="form-group">
+            <label id="txt-lbl-cover" for="book-cover">စာအုပ်မျက်နှာဖုံးပုံ (Cover Image)</label>
+            <input type="file" id="book-cover" accept="image/*">
+        </div>
+        <div class="form-group" style="margin-top:15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <label id="txt-lbl-pdf" for="pdf-file">📄 PDF မှ စာသားဆွဲထုတ်မည် (Optional)</label>
+            <input type="file" id="pdf-file" accept=".pdf">
+            <button type="button" id="extract-btn" class="btn" style="margin-top: 8px; width:100%; justify-content:center; background-color:#2ecc71;">⚡ PDF မှ စာသားများကို ဆွဲထုတ်မည်</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 id="txt-sec-chapters" style="margin: 0; font-size: 16px;">🔢 အခန်းများ စာရင်း</h3>
+            <button type="button" id="add-chapter-btn" class="btn">+ တိုးမည်</button>
+        </div>
+
+        <div id="chapters-list" class="tabs-row"></div>
+
+        <div class="chapter-tools">
+            <button type="button" id="move-left-btn" class="btn btn-tool">◀</button>
+            <button type="button" id="move-right-btn" class="btn btn-tool">▶</button>
+            <button type="button" id="delete-chapter-btn" class="btn btn-tool btn-danger">🗑 ဖျက်မည်</button>
+        </div>
+
+        <div class="form-group">
+            <label id="txt-lbl-chaptitle" for="chapter-title">အခန်းခေါင်းစဉ်</label>
+            <input type="text" id="chapter-title" value="Chapter 1">
+        </div>
+
+        <div class="form-group">
+            <label id="txt-lbl-content">အကြောင်းအရာနှင့် ဓာတ်ပုံများ</label>
+            <div style="display:flex; gap:6px; margin-bottom: 8px;">
+                <button type="button" id="insert-image-btn" class="btn btn-tool">🖼 ဓာတ်ပုံထည့်မည်</button>
+                <select id="font-family-select" style="width:auto; padding:2px 6px; font-size:12px;">
+                    <option value="sans-serif">Default Font</option>
+                    <option value="Pyidaungsu, sans-serif">Pyidaungsu</option>
+                    <option value="Noto Sans Myanmar, sans-serif">Noto Sans</option>
+                </select>
+                <select id="font-size-select" style="width:auto; padding:2px 6px; font-size:12px;">
+                    <option value="16px">16px (Normal)</option>
+                    <option value="18px">18px (Medium)</option>
+                    <option value="22px">22px (Large)</option>
+                </select>
+                <input type="file" id="image-loader" accept="image/*" style="display: none;">
+            </div>
             
-            <div class="input-group">
-                <label for="book-title" id="txt-lbl-title">စာအုပ်ခေါင်းစဉ်</label>
-                <input type="text" id="book-title" placeholder="ဥပမာ - နွေဦးကဗျာများ">
-            </div>
+            <div id="editor-container"></div>
+        </div>
+    </div>
 
-            <div class="input-group">
-                <label for="book-author" id="txt-lbl-author">စာရေးဆရာအမည်</label>
-                <input type="text" id="book-author" placeholder="ဥပမာ - မောင်စွမ်းရည်">
-            </div>
+    <div class="card">
+        <label id="txt-lbl-toc">📋 စာအုပ်မာတိကာ အကြိုကြည့်ရှုရန်</label>
+        <div class="toc-preview">
+            <ul id="toc-preview-list"></ul>
+        </div>
+    </div>
 
-            <div class="input-group">
-                <label for="book-cover" id="txt-lbl-cover">စာအုပ်မျက်နှာဖုံးပုံ (Cover Image)</label>
-                <input type="file" id="book-cover" accept="image/*">
-            </div>
+    <button type="button" id="generate-btn" class="btn btn-success">📥 ePub ဖိုင် ထုတ်ယူမည်</button>
 
-            <div class="divider"></div>
+</div>
 
-            <div class="pdf-section">
-                <label for="pdf-file" class="pdf-label" id="txt-lbl-pdf">📄 PDF မှ စာသားဆွဲထုတ်မည် (Optional)</label>
-                <input type="file" id="pdf-file" accept=".pdf">
-                <button type="button" id="extract-btn" class="btn btn-secondary">⚡ PDF မှ စာသားများကို ဆွဲထုတ်မည်</button>
-            </div>
-        </section>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.js"></script>
 
-        <section class="card">
-            <div class="section-header">
-                <h2 id="txt-sec-chapters">🔢 အခန်းများ စာရင်း</h2>
-                <button type="button" id="add-chapter-btn" class="btn btn-add">+ တိုးမည်</button>
-            </div>
+<script type="module" src="app.js"></script>
 
-            <div class="tabs-wrapper">
-                <div id="chapters-list" class="tabs-container">
-                    </div>
-                <div class="reorder-controls">
-                    <button type="button" id="move-left-btn" class="btn-nav" title="Move Left">◀</button>
-                    <button type="button" id="move-right-btn" class="btn-nav" title="Move Right">▶</button>
-                    <button type="button" id="delete-chapter-btn" class="btn-danger-sm" title="Delete Chapter">🗑️</button>
-                </div>
-            </div>
-
-            <div class="editor-section">
-                <div class="input-group">
-                    <label for="chapter-title" id="txt-lbl-chaptitle">အခန်းခေါင်းစဉ်</label>
-                    <input type="text" id="chapter-title" value="Chapter 1">
-                </div>
-
-                <div class="input-group">
-                    <label id="txt-lbl-content">အကြောင်းအရာနှင့် ဓာတ်ပုံများ</label>
-                    
-                    <div class="toolbar-extras">
-                        <button type="button" id="insert-image-btn" class="btn btn-photo">🖼️ ဓာတ်ပုံညှပ်ထည့်မည်</button>
-                        <input type="file" id="image-loader" accept="image/*" style="display: none;">
-                        
-                        <div class="font-controls">
-                            <select id="font-family-select" class="control-select-sm">
-                                <option value="system-ui">Default Font</option>
-                                <option value="Myanmar3">Myanmar3</option>
-                                <option value="Pyidaungsu">Pyidaungsu</option>
-                                <option value="monospace">Monospace</option>
-                            </select>
-                            <select id="font-size-select" class="control-select-sm">
-                                <option value="16px">16px (Normal)</option>
-                                <option value="18px">18px (Medium)</option>
-                                <option value="22px">22px (Large)</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div id="editor-wrapper">
-                        <div id="editor-container"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="toc-preview-section">
-                <h3 id="txt-lbl-toc">📋 စာအုပ်မာတိကာ အကြိုကြည့်ရှုရန်</h3>
-                <ul id="toc-preview-list">
-                    </ul>
-            </div>
-
-            <button type="button" id="generate-btn" class="btn btn-primary">📥 ePub ဖိုင် ထုတ်ယူမည်</button>
-        </section>
-
-    </main>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-    
-    <script src="app.js"></script>
 </body>
 </html>
