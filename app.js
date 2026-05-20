@@ -16,6 +16,29 @@ const quill = new Quill('#editor-container', {
 let chapters = [{ title: 'Chapter 1', content: '' }];
 let currentChapterIndex = 0;
 
+// Night Mode (Dark Theme) Logic
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+const currentTheme = localStorage.getItem('theme') || 'light';
+
+// စဖွင့်ချင်း သိမ်းထားခဲ့တဲ့ Theme အတိုင်း သတ်မှတ်ခြင်း
+if (currentTheme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    themeToggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
+}
+
+themeToggleBtn.addEventListener('click', () => {
+    let theme = document.documentElement.getAttribute('data-theme');
+    if (theme === 'dark') {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+        themeToggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
+    } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+        themeToggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
+    }
+});
+
 // UI တွင် အခန်းစာရင်းကို ပြန်လည်ရေးဆွဲပေးသည့် Function
 function renderChapterList() {
     const listContainer = document.getElementById('chapterList');
@@ -25,7 +48,6 @@ function renderChapterList() {
         const item = document.createElement('div');
         item.className = `chapter-item ${index === currentChapterIndex ? 'active' : ''}`;
         
-        // အခန်းခေါင်းစဉ်ပြသရန်
         const titleSpan = document.createElement('span');
         titleSpan.textContent = ch.title || `Untitled Chapter ${index + 1}`;
         titleSpan.style.flexGrow = '1';
@@ -33,7 +55,6 @@ function renderChapterList() {
 
         item.appendChild(titleSpan);
 
-        // အခန်းဖျက်သည့်ခလုတ် (အခန်းတစ်ခန်းတည်းရှိလျှင် ဖျက်ခွင့်မပြုပါ)
         if (chapters.length > 1) {
             const delBtn = document.createElement('button');
             delBtn.className = 'delete-ch-btn';
@@ -59,14 +80,12 @@ function saveCurrentChapterState() {
 
 // အခန်းအသစ်တိုးခြင်း ခလုတ်လုပ်ဆောင်ချက်
 document.getElementById('addChapterBtn').addEventListener('click', function() {
-    saveCurrentChapterState(); // လက်ရှိအခန်းကို အရင်သိမ်း
+    saveCurrentChapterState();
     chapters.push({ title: `Chapter ${chapters.length + 1}`, content: '' });
     currentChapterIndex = chapters.length - 1;
     
-    // Editor UI ကို ရှင်းလင်းပြီး အသစ်ပြင်ဆင်ရန်
     document.getElementById('chapterTitle').value = chapters[currentChapterIndex].title;
     quill.setContents([]);
-    
     renderChapterList();
 });
 
@@ -77,7 +96,6 @@ function switchChapter(index) {
     
     document.getElementById('chapterTitle').value = chapters[currentChapterIndex].title;
     quill.clipboard.dangerouslyPasteHTML(chapters[currentChapterIndex].content);
-    
     renderChapterList();
 }
 
@@ -85,14 +103,11 @@ function switchChapter(index) {
 function deleteChapter(index) {
     if (confirm("ဤအခန်းကို ဖျက်ရန် သေချာပါသလား?")) {
         chapters.splice(index, 1);
-        // လက်ရှိ index က ဖျက်လိုက်တဲ့အထဲပါသွားရင် index ကို ရှေ့တစ်ဆင့် ပြန်လျော့
         if (currentChapterIndex >= chapters.length) {
             currentChapterIndex = chapters.length - 1;
         }
-        // Editor ထဲသို့ ကျန်ရှိသော အခန်းဒေတာ ပြန်ထည့်
         document.getElementById('chapterTitle').value = chapters[currentChapterIndex].title;
         quill.clipboard.dangerouslyPasteHTML(chapters[currentChapterIndex].content);
-        
         renderChapterList();
     }
 }
@@ -130,7 +145,6 @@ function drawTextOnImage(file, title, author) {
                     const systemFonts = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
                     
                     ctx.font = `bold ${fontSizeTitle}px ${systemFonts}`;
-                    // မျက်နှာဖုံးပေါ်တွင် စာအုပ်ခေါင်းစဉ် ဆွဲခြင်း
                     const words = title.split(''); let line = ''; let lines = [];
                     for (let n = 0; n < words.length; n++) {
                         let testLine = line + words[n];
@@ -145,7 +159,6 @@ function drawTextOnImage(file, title, author) {
                         currentY += fontSizeTitle * 1.4;
                     }
                     
-                    // စာရေးဆရာအမည် ဆွဲခြင်း
                     ctx.font = `bold ${fontSizeAuthor}px ${systemFonts}`;
                     ctx.fillText(author, canvas.width / 2, canvas.height * 0.85);
                     
@@ -164,7 +177,7 @@ function drawTextOnImage(file, title, author) {
 
 // ePub ထုတ်လုပ်မည့် အဓိက Logic
 document.getElementById('generateBtn').addEventListener('click', async function() {
-    saveCurrentChapterState(); // လက်ရှိ ရေးလက်စကို နောက်ဆုံးအကြိမ် သိမ်းဆည်းခြင်း
+    saveCurrentChapterState();
 
     const title = document.getElementById('bookTitle').value.trim() || 'Untitled Book';
     const author = document.getElementById('bookAuthor').value.trim() || 'Unknown Author';
@@ -173,14 +186,12 @@ document.getElementById('generateBtn').addEventListener('click', async function(
     const zip = new JSZip();
     zip.file("mimetype", "application/epub+zip", { compression: "STORE" });
 
-    // container.xml
     const containerXml = `<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
     <rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles>
 </container>`;
     zip.folder("META-INF").file("container.xml", containerXml);
 
-    // Manifest နှင့် Spine ကို Dynamic တည်ဆောက်ခြင်း
     let manifestItems = '';
     let spineItems = '';
     let tocNavPoints = '';
@@ -201,7 +212,6 @@ document.getElementById('generateBtn').addEventListener('click', async function(
         metadataCoverMeta = `<meta name="cover" content="cover-image"/>`;
     }
 
-    // content.opf တည်ဆောက်ခြင်း
     const contentOpf = `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="2.0">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -220,7 +230,6 @@ document.getElementById('generateBtn').addEventListener('click', async function(
     </spine>
 </package>`;
 
-    // toc.ncx တည်ဆောက်ခြင်း
     const tocNcx = `<?xml version="1.0" encoding="UTF-8"?>
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
     <head><meta name="dtb:uid" content="123456789X"/></head>
@@ -234,7 +243,6 @@ document.getElementById('generateBtn').addEventListener('click', async function(
     oebps.file("content.opf", contentOpf);
     oebps.file("toc.ncx", tocNcx);
 
-    // အခန်းတစ်ခုချင်းစီအတွက် HTML ဖိုင်များ လှည့်ပတ်ထုတ်ပေးခြင်း
     chapters.forEach((ch, index) => {
         const chapterHtml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -269,6 +277,5 @@ document.getElementById('generateBtn').addEventListener('click', async function(
     });
 });
 
-// App စဖွင့်ချင်း ပထမဆုံး အခန်းစာရင်းပြသရန်
 renderChapterList();
 document.getElementById('chapterTitle').value = chapters[0].title;
