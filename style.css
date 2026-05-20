@@ -28,7 +28,6 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: system-ui, -apple-system, sans-serif;
 }
 
 body {
@@ -36,6 +35,7 @@ body {
     color: var(--text-color);
     line-height: 1.6;
     padding-bottom: 40px;
+    font-family: system-ui, -apple-system, sans-serif;
     transition: background-color 0.3s, color 0.3s;
 }
 
@@ -56,8 +56,14 @@ body {
     margin: 0 auto;
 }
 
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .app-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     color: var(--text-color);
 }
 
@@ -67,23 +73,38 @@ body {
     margin-top: 8px;
 }
 
-/* Ultra Clean Switch Button */
+/* Control Elements */
+.control-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.control-select-sm {
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    font-size: 0.85rem;
+}
+
+/* Theme Switch Button */
 .theme-btn {
     background: var(--border-color);
     border: none;
-    width: 45px;
-    height: 45px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.3rem;
-    transition: transform 0.2s, background-color 0.3s;
-}
-
-.theme-btn:active {
-    transform: scale(0.9);
+    font-size: 1.2rem;
 }
 
 /* Container Blocks */
@@ -103,7 +124,7 @@ body {
 }
 
 .card h2 {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     margin-bottom: 15px;
     display: flex;
     align-items: center;
@@ -139,7 +160,7 @@ input[type="text"], input[type="file"] {
     margin: 20px 0;
 }
 
-/* Buttons Engine */
+/* Buttons System */
 .btn {
     width: 100%;
     padding: 12px;
@@ -148,30 +169,14 @@ input[type="text"], input[type="file"] {
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
     display: block;
     text-align: center;
 }
 
-.btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-    margin-top: 15px;
-}
-.btn-primary:hover { background-color: var(--primary-hover); }
-
-.btn-secondary {
-    background-color: #10b981;
-    color: white;
-    margin-top: 8px;
-}
-.btn-secondary:hover { background-color: #059669; }
-
-.btn-photo {
-    background-color: #6366f1;
-    color: white;
-    margin-bottom: 12px;
-}
+.btn-primary { background-color: var(--primary-color); color: white; margin-top: 15px; }
+.btn-secondary { background-color: #10b981; color: white; margin-top: 8px; }
+.btn-photo { background-color: #6366f1; color: white; flex: 1; padding: 8px; font-size: 0.9rem; border-radius: 6px; border:none; cursor:pointer;}
+.btn-add { width: auto; padding: 6px 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;}
 
 .section-header {
     display: flex;
@@ -180,20 +185,33 @@ input[type="text"], input[type="file"] {
     margin-bottom: 15px;
 }
 
-.btn-add {
-    width: auto;
-    padding: 6px 14px;
-    background-color: var(--primary-color);
-    color: white;
+/* Toolbar Extras Flexbox */
+.toolbar-extras {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
 }
 
-/* Chapter Management Tabs */
+.font-controls {
+    display: flex;
+    gap: 6px;
+}
+
+/* Reorder and Advanced Layouts */
+.tabs-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
 .tabs-container {
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    padding-bottom: 8px;
-    margin-bottom: 15px;
+    padding-bottom: 6px;
 }
 
 .chapter-tab {
@@ -214,7 +232,31 @@ input[type="text"], input[type="file"] {
     font-weight: 600;
 }
 
-/* Rich Text Editor Overrides for Dark Mode */
+.reorder-controls {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.btn-nav {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-danger-sm {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Editor Main Wrapper */
 #editor-wrapper {
     background: white;
     color: #333333;
@@ -223,25 +265,47 @@ input[type="text"], input[type="file"] {
     overflow: hidden;
 }
 
-.ql-toolbar.ql-snow {
-    border-top: none !important;
-    border-left: none !important;
-    border-right: none !important;
-    border-bottom: 1px solid #e5e7eb !important;
-    background: #f8fafc;
-}
-
 #editor-container {
-    min-height: 200px;
-    font-size: 1rem;
+    min-height: 220px;
+    font-size: 16px;
     border: none !important;
 }
 
-/* Image insertion responsive rule */
 #editor-container img {
     max-width: 100%;
     height: auto;
     border-radius: 6px;
     display: block;
     margin: 10px auto;
+}
+
+/* TOC Preview List Styles */
+.toc-preview-section {
+    background-color: var(--bg-color);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    border: 1px dashed var(--border-color);
+}
+
+.toc-preview-section h3 {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    color: var(--text-color);
+}
+
+#toc-preview-list {
+    list-style-type: decimal;
+    padding-left: 20px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+#toc-preview-list li {
+    margin-bottom: 4px;
+    cursor: pointer;
+    color: var(--primary-color);
+}
+#toc-preview-list li:hover {
+    text-decoration: underline;
 }
