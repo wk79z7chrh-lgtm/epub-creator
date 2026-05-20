@@ -121,60 +121,6 @@ document.getElementById('chapterTitle').addEventListener('input', function() {
     }
 });
 
-// မျက်နှာဖုံးပုံပေါ်တွင် စာသားဆွဲပေးမည့် စနစ်
-function drawTextOnImage(file, title, author) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const img = new Image();
-            img.onload = function() {
-                try {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
-                    
-                    const fontSizeTitle = Math.max(24, Math.floor(canvas.width * 0.065)); 
-                    const fontSizeAuthor = Math.max(16, Math.floor(canvas.width * 0.045));
-                    ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
-                    ctx.shadowBlur = 12;
-                    ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 4;
-                    ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#ffffff"; 
-                    
-                    const systemFonts = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-                    
-                    ctx.font = `bold ${fontSizeTitle}px ${systemFonts}`;
-                    const words = title.split(''); let line = ''; let lines = [];
-                    for (let n = 0; n < words.length; n++) {
-                        let testLine = line + words[n];
-                        if (ctx.measureText(testLine).width > canvas.width * 0.85 && n > 0) {
-                            lines.push(line); line = words[n];
-                        } else { line = testLine; }
-                    }
-                    lines.push(line);
-                    let currentY = (canvas.height * 0.45) - ((lines.length - 1) * fontSizeTitle * 1.4) / 2;
-                    for (let i = 0; i < lines.length; i++) {
-                        ctx.fillText(lines[i], canvas.width / 2, currentY);
-                        currentY += fontSizeTitle * 1.4;
-                    }
-                    
-                    ctx.font = `bold ${fontSizeAuthor}px ${systemFonts}`;
-                    ctx.fillText(author, canvas.width / 2, canvas.height * 0.85);
-                    
-                    canvas.toBlob((blob) => {
-                        const fileReader = new FileReader();
-                        fileReader.onload = (e) => resolve(e.target.result);
-                        fileReader.readAsArrayBuffer(blob);
-                    }, 'image/jpeg', 0.95);
-                } catch (e) { reject(e); }
-            };
-            img.src = event.target.result;
-        };
-        reader.readAsDataURL(file);
-    });
-}
-
 // ePub ထုတ်လုပ်မည့် အဓိက Logic
 document.getElementById('generateBtn').addEventListener('click', async function() {
     saveCurrentChapterState();
