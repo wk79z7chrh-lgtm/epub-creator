@@ -1,3 +1,4 @@
+/* Color Palette Variables */
 :root {
     --bg-color: #f4f6f9;
     --card-bg: #ffffff;
@@ -7,204 +8,240 @@
     --text-muted: #6b7280;
     --border-color: #e5e7eb;
     --active-color: #e0e7ff;
+    --header-bg: #ffffff;
 }
 
+[data-theme="dark"] {
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --primary-color: #6366f1;
+    --primary-hover: #4f46e5;
+    --text-color: #f8fafc;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+    --active-color: #312e81;
+    --header-bg: #1e293b;
+}
+
+/* Base Settings */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Inter', sans-serif;
+    font-family: system-ui, -apple-system, sans-serif;
 }
 
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
-    padding: 20px;
+    line-height: 1.6;
+    padding-bottom: 40px;
+    transition: background-color 0.3s, color 0.3s;
 }
 
-.app-container {
-    max-width: 1200px;
+/* Header UI */
+.app-header {
+    background-color: var(--header-bg);
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20px;
+}
+
+.header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 600px;
     margin: 0 auto;
 }
 
-.app-header {
-    text-align: center;
-    margin-bottom: 25px;
-}
-
 .app-header h1 {
-    color: var(--primary-color);
-    font-size: 2.3rem;
-    margin-bottom: 5px;
+    font-size: 1.5rem;
+    color: var(--text-color);
 }
 
-.app-header p {
+.subtitle {
+    font-size: 0.9rem;
     color: var(--text-muted);
+    margin-top: 8px;
 }
 
-.main-content {
-    display: grid;
-    grid-template-columns: 360px 1fr;
-    gap: 20px;
-}
-
-@media (max-width: 768px) {
-    .main-content {
-        grid-template-columns: 1fr;
-    }
-}
-
-.sidebar {
+/* Ultra Clean Switch Button */
+.theme-btn {
+    background: var(--border-color);
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
     display: flex;
-    flex-direction: column;
-    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    transition: transform 0.2s, background-color 0.3s;
+}
+
+.theme-btn:active {
+    transform: scale(0.9);
+}
+
+/* Container Blocks */
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 15px;
 }
 
 .card {
     background-color: var(--card-bg);
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     border: 1px solid var(--border-color);
 }
 
-h3 {
-    font-size: 1.1rem;
-    color: #374151;
+.card h2 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
+/* Form Controls */
 .input-group {
     margin-bottom: 15px;
 }
 
 .input-group label {
     display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
     margin-bottom: 6px;
-    font-weight: 500;
-    font-size: 0.85rem;
+    color: var(--text-color);
 }
 
-.input-group input {
+input[type="text"], input[type="file"] {
     width: 100%;
     padding: 10px;
-    border: 1px solid var(--border-color);
     border-radius: 8px;
-    font-size: 0.95rem;
-}
-
-.input-group input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
-.input-group input[type="file"] {
-    padding: 6px;
-    background: #fafafa;
-    cursor: pointer;
-}
-
-/* Chapter List Styles */
-.chapter-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.btn-sm {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: background 0.2s;
-}
-
-.btn-sm:hover {
-    opacity: 0.9;
-}
-
-.chapter-list {
-    max-height: 200px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.chapter-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background: #f9fafb;
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.9rem;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 1rem;
 }
 
-.chapter-item.active {
-    background-color: var(--active-color);
-    border-color: var(--primary-color);
-    font-weight: 600;
+.divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 20px 0;
 }
 
-.chapter-item .delete-ch-btn {
-    color: #ef4444;
-    border: none;
-    background: none;
-    cursor: pointer;
-    padding: 2px 6px;
-}
-
+/* Buttons Engine */
 .btn {
     width: 100%;
     padding: 12px;
-    border: none;
     border-radius: 8px;
+    border: none;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
+    transition: background-color 0.2s;
+    display: block;
+    text-align: center;
 }
 
 .btn-primary {
     background-color: var(--primary-color);
     color: white;
+    margin-top: 15px;
+}
+.btn-primary:hover { background-color: var(--primary-hover); }
+
+.btn-secondary {
+    background-color: #10b981;
+    color: white;
+    margin-top: 8px;
+}
+.btn-secondary:hover { background-color: #059669; }
+
+.btn-photo {
+    background-color: #6366f1;
+    color: white;
+    margin-bottom: 12px;
 }
 
-.editor-area {
+.section-header {
     display: flex;
-    flex-direction: column;
-    min-height: 540px;
-}
-
-.editor-header {
-    display: flex;
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
 }
 
-#editor-container {
-    flex-grow: 1;
-    height: 350px;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    font-size: 1.05rem;
+.btn-add {
+    width: auto;
+    padding: 6px 14px;
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Chapter Management Tabs */
+.tabs-container {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+.chapter-tab {
+    padding: 8px 16px;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    white-space: nowrap;
+    color: var(--text-color);
+}
+
+.chapter-tab.active {
+    background-color: var(--active-color);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Rich Text Editor Overrides for Dark Mode */
+#editor-wrapper {
+    background: white;
+    color: #333333;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
 }
 
 .ql-toolbar.ql-snow {
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    border-color: var(--border-color);
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    background: #f8fafc;
+}
+
+#editor-container {
+    min-height: 200px;
+    font-size: 1rem;
+    border: none !important;
+}
+
+/* Image insertion responsive rule */
+#editor-container img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    display: block;
+    margin: 10px auto;
 }
