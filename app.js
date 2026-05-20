@@ -1,5 +1,7 @@
 // Setup PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+}
 
 // Global App State
 let chapters = [{ id: 1, title: 'Chapter 1', content: '' }];
@@ -17,8 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // Theme Logic (Dark/Light)
 function initTheme() {
     const toggleBtn = document.getElementById('theme-toggle');
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (!toggleBtn) return;
     
+    const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme);
 
@@ -34,6 +37,7 @@ function initTheme() {
 
 function updateThemeIcon(theme) {
     const icon = document.querySelector('#theme-toggle i');
+    if (!icon) return;
     if (theme === 'dark') {
         icon.className = 'fas fa-sun';
     } else {
@@ -43,14 +47,13 @@ function updateThemeIcon(theme) {
 
 // Editor Logic
 function initEditor() {
+    const container = document.getElementById('editor-container');
+    if (!container) return;
+
     quill = new Quill('#editor-container', {
         theme: 'snow',
         modules: {
-            toolbar: [
-                ['bold', 'italic', 'underline', 'blockquote'],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                ['clean']
-            ]
+            toolbar: false // Hide default toolbar to use our custom native buttons smoothly
         }
     });
 
@@ -66,6 +69,7 @@ function initEditor() {
 // Render Tabs Layout
 function renderTabs() {
     const container = document.getElementById('chapters-list');
+    if (!container) return;
     container.innerHTML = '';
 
     chapters.forEach(chap => {
@@ -78,7 +82,6 @@ function renderTabs() {
 }
 
 function switchChapter(id) {
-    // Save current title before switching
     const currentChap = chapters.find(c => c.id === activeChapterId);
     if (currentChap) {
         currentChap.title = document.getElementById('chapter-title').value || `Chapter ${currentChap.id}`;
@@ -87,8 +90,9 @@ function switchChapter(id) {
     activeChapterId = id;
     const nextChap = chapters.find(c => c.id === activeChapterId);
     
-    document.getElementById('chapter-title').value = nextChap.title;
-    quill.root.innerHTML = nextChap.content;
+    const titleInput = document.getElementById('chapter-title');
+    if (titleInput) titleInput.value = nextChap.title;
+    if (quill) quill.root.innerHTML = nextChap.content;
     
     renderTabs();
 }
@@ -96,132 +100,141 @@ function switchChapter(id) {
 // Events Setup
 function setupEventListeners() {
     // Add Chapter
-    document.getElementById('add-chapter-btn').addEventListener('click', () => {
-        const newId = chapters.length > 0 ? Math.max(...chapters.map(c => c.id)) + 1 : 1;
-        chapters.push({
-            id: newId,
-            title: `Chapter ${newId}`,
-            content: ''
+    const addBtn = document.getElementById('add-chapter-btn');
+    if (addBtn) {
+        addBtn.addEventListener('click', () => {
+            const newId = chapters.length > 0 ? Math.max(...chapters.map(c => c.id)) + 1 : 1;
+            chapters.push({
+                id: newId,
+                title: `Chapter ${newId}`,
+                content: ''
+            });
+            switchChapter(newId);
         });
-        switchChapter(newId);
-    });
+    }
 
     // Dynamic Title Input Sync
-    document.getElementById('chapter-title').addEventListener('input', (e) => {
-        const currentChap = chapters.find(c => c.id === activeChapterId);
-        if (currentChap) {
-            currentChap.title = e.target.value || `Chapter ${currentChap.id}`;
-            // Debounced tab text update
-            const activeTab = document.querySelector('.chapter-tab.active');
-            if (activeTab) activeTab.innerText = currentChap.title;
-        }
-    });
+    const titleInput = document.getElementById('chapter-title');
+    if (titleInput) {
+        titleInput.addEventListener('input', (e) => {
+            const currentChap = chapters.find(c => c.id === activeChapterId);
+            if (currentChap) {
+                currentChap.title = e.target.value || `Chapter ${currentChap.id}`;
+                const activeTab = document.querySelector('.chapter-tab.active');
+                if (activeTab) activeTab.innerText = currentChap.title;
+            }
+        });
+    }
 
     // Image Inserter Tool Logic
     const imgLoader = document.getElementById('image-loader');
-    document.getElementById('insert-image-btn').addEventListener('click', () => {
-        imgLoader.click();
-    });
+    const insertImgBtn = document.getElementById('insert-image-btn');
+    
+    if (insertImgBtn && imgLoader) {
+        insertImgBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            imgLoader.click();
+        });
 
-    imgLoader.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const range = quill.getSelection(true);
-                // Insert as Base64 Image inside editor string
-                quill.insertEmbed(range.index, 'image', event.target.result);
-                quill.setSelection(range.index + 1);
-            };
-            reader.readAsDataURL(file);
-        }
-        imgLoader.value = ''; // Reset input element
-    });
+        imgLoader.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file && quill) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const range = quill.getSelection(true) || { index: quill.getLength() };
+                    quill.insertEmbed(range.index, 'image', event.target.result);
+                    quill.setSelection(range.index + 1);
+                };
+                reader.readAsDataURL(file);
+            }
+            imgLoader.value = ''; 
+        });
+    }
 
     // PDF Extraction Logic
-    document.getElementById('extract-btn').addEventListener('click', async () => {
-        const fileInput = document.getElementById('pdf-file');
-        if (!fileInput.files.length) {
-            alert('ကျေးဇူးပြု၍ PDF ဖိုင်အရင်ရွေးချယ်ပေးပါရန်။');
-            return;
-        }
-
-        const file = fileInput.files[0];
-        const reader = new FileReader();
-        
-        reader.onload = async function() {
-            const typedarray = new Uint8Array(this.result);
-            try {
-                const pdf = await pdfjsLib.getDocument(typedarray).promise;
-                let fullText = '';
-                
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map(item => item.str).join(' ');
-                    fullText += `<h3>Page ${i}</h3><p>${pageText}</p><br>`;
-                }
-                
-                quill.root.innerHTML = fullText;
-                const currentChap = chapters.find(c => c.id === activeChapterId);
-                if (currentChap) currentChap.content = fullText;
-                
-                alert('PDF မှ စာသားများကို အောင်မြင်စွာ ဆွဲထုတ်ပြီးပါပြီ။');
-            } catch (err) {
-                alert('PDF ဖတ်ရာတွင် အမှားအယွင်းရှိနေပါသည်။');
-                console.error(err);
+    const extractBtn = document.getElementById('extract-btn');
+    if (extractBtn) {
+        extractBtn.addEventListener('click', async () => {
+            const fileInput = document.getElementById('pdf-file');
+            if (!fileInput || !fileInput.files.length) {
+                alert('ကျေးဇူးပြု၍ PDF ဖိုင်အရင်ရွေးချယ်ပေးပါရန်။');
+                return;
             }
-        };
-        reader.readAsArrayBuffer(file);
-    });
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = async function() {
+                const typedarray = new Uint8Array(this.result);
+                try {
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    let fullText = '';
+                    
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        const pageText = textContent.items.map(item => item.str).join(' ');
+                        fullText += `<h3>Page ${i}</h3><p>${pageText}</p><br>`;
+                    }
+                    
+                    if (quill) {
+                        quill.root.innerHTML = fullText;
+                        const currentChap = chapters.find(c => c.id === activeChapterId);
+                        if (currentChap) currentChap.content = fullText;
+                    }
+                    alert('PDF မှ စာသားများကို အောင်မြင်စွာ ဆွဲထုတ်ပြီးပါပြီ။');
+                } catch (err) {
+                    alert('PDF ဖတ်ရာတွင် အမှားအယွင်းရှိနေပါသည်။');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+    }
 
     // ePub File Generation
-    document.getElementById('generate-btn').addEventListener('click', async () => {
-        // Save current active chapter fields
-        const currentChap = chapters.find(c => c.id === activeChapterId);
-        if (currentChap) currentChap.title = document.getElementById('chapter-title').value || `Chapter ${currentChap.id}`;
+    const genBtn = document.getElementById('generate-btn');
+    if (genBtn) {
+        genBtn.addEventListener('click', async () => {
+            const currentChap = chapters.find(c => c.id === activeChapterId);
+            const titleInput = document.getElementById('chapter-title');
+            if (currentChap && titleInput) {
+                currentChap.title = titleInput.value || `Chapter ${currentChap.id}`;
+            }
 
-        const bookTitle = document.getElementById('book-title').value || 'Untitled Book';
-        const bookAuthor = document.getElementById('book-author').value || 'Unknown Author';
-        const coverInput = document.getElementById('book-cover');
+            const bookTitle = document.getElementById('book-title').value || 'Untitled Book';
+            const bookAuthor = document.getElementById('book-author').value || 'Unknown Author';
+            const coverInput = document.getElementById('book-cover');
 
-        const zip = new JSZip();
-        
-        // 1. mimetype
-        zip.file('mimetype', 'application/epub+zip', { compression: "STORE" });
-        
-        // 2. META-INF/container.xml
-        const containerXml = `<?xml version="1.0" encoding="UTF-8"?>
+            const zip = new JSZip();
+            zip.file('mimetype', 'application/epub+zip', { compression: "STORE" });
+            
+            const containerXml = `<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
     <rootfiles>
         <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
     </rootfiles>
 </container>`;
-        zip.folder('META-INF').file('container.xml', containerXml);
+            zip.folder('META-INF').file('container.xml', containerXml);
 
-        // 3. OEBPS Files
-        const oebps = zip.folder('OEBPS');
-        
-        // Process Cover Image if exists
-        let hasCover = false;
-        if (coverInput.files.length > 0) {
-            const coverFile = coverInput.files[0];
-            const coverData = await fileToBuffer(coverFile);
-            oebps.file('cover.jpg', coverData);
-            hasCover = true;
-        }
+            const oebps = zip.folder('OEBPS');
+            let hasCover = false;
+            if (coverInput && coverInput.files.length > 0) {
+                const coverFile = coverInput.files[0];
+                const coverData = await fileToBuffer(coverFile);
+                oebps.file('cover.jpg', coverData);
+                hasCover = true;
+            }
 
-        // Chapters Injection
-        let manifestItems = '';
-        let spineItems = '';
-        
-        if (hasCover) {
-            manifestItems += `    <item id="cover-img" href="cover.jpg" media-type="image/jpeg"/>\n`;
-        }
+            let manifestItems = '';
+            let spineItems = '';
+            
+            if (hasCover) {
+                manifestItems += `    <item id="cover-img" href="cover.jpg" media-type="image/jpeg"/>\n`;
+            }
 
-        chapters.forEach((chap, idx) => {
-            const filename = `chapter_${chap.id}.xhtml`;
-            const xhtmlContent = `<?xml version="1.0" encoding="utf-8"?>
+            chapters.forEach((chap) => {
+                const filename = `chapter_${chap.id}.xhtml`;
+                const xhtmlContent = `<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -237,14 +250,12 @@ function setupEventListeners() {
     ${chap.content}
 </body>
 </html>`;
-            oebps.file(filename, xhtmlContent);
-            
-            manifestItems += `    <item id="chap_${chap.id}" href="${filename}" media-type="application/xhtml+xml"/>\n`;
-            spineItems += `    <itemref idref="chap_${chap.id}"/>\n`;
-        });
+                oebps.file(filename, xhtmlContent);
+                manifestItems += `    <item id="chap_${chap.id}" href="${filename}" media-type="application/xhtml+xml"/>\n`;
+                spineItems += `    <itemref idref="chap_${chap.id}"/>\n`;
+            });
 
-        // content.opf Structure
-        const opfContent = `<?xml version="1.0" encoding="UTF-8"?>
+            const opfContent = `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="2.0">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
         <dc:title>${bookTitle}</dc:title>
@@ -260,18 +271,17 @@ ${manifestItems}
 ${spineItems}
     </spine>
 </package>`;
-        oebps.file('content.opf', opfContent);
+            oebps.file('content.opf', opfContent);
 
-        // toc.ncx Structure
-        let ncxNav = '';
-        chapters.forEach((chap, idx) => {
-            ncxNav += `        <navPoint id="nav_${chap.id}" playOrder="${idx + 1}">
+            let ncxNav = '';
+            chapters.forEach((chap, idx) => {
+                ncxNav += `        <navPoint id="nav_${chap.id}" playOrder="${idx + 1}">
             <navLabel><text>${chap.title}</text></navLabel>
             <content src="chapter_${chap.id}.xhtml"/>
         </navPoint>\n`;
-        });
+            });
 
-        const ncxContent = `<?xml version="1.0" encoding="UTF-8"?>
+            const ncxContent = `<?xml version="1.0" encoding="UTF-8"?>
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
     <head>
         <meta name="dtb:uid" content="urn:uuid:12345"/>
@@ -282,18 +292,17 @@ ${spineItems}
 ${ncxNav}
     </navMap>
 </ncx>`;
-        oebps.file('toc.ncx', ncxContent);
+            oebps.file('toc.ncx', ncxContent);
 
-        // Download Final ePub Zip File
-        const content = await zip.generateAsync({ type: 'blob' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(content);
-        link.download = `${bookTitle}.epub`;
-        link.click();
-    });
+            const content = await zip.generateAsync({ type: 'blob' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = `${bookTitle}.epub`;
+            link.click();
+        });
+    }
 }
 
-// Helpers
 function fileToBuffer(file) {
     return new Promise((resolve) => {
         const reader = new FileReader();
