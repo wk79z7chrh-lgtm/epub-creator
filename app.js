@@ -10,8 +10,8 @@ const firebaseConfig = {
   projectId: "epub-creater",
   storageBucket: "epub-creater.firebasestorage.app",
   messagingSenderId: "1089709692644",
-  appId: "1:1089709692644:web:a0e9d2041c41eae7413ef1",
-  measurementId: "G-W8GX9E0V5T"
+  appId: "1:1089709692644:web:8173fb5aea44cb9d413ef1",
+  measurementId: "G-RS5E4MQEF8"
 };
 
 // Firebase အား စတင်အသက်သွင်းခြင်း
