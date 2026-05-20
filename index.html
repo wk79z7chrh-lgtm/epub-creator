@@ -1,71 +1,132 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="my">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Chapter Web ePub Creator</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Myanmar:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
-    
-    <link rel="stylesheet" href="style.css">
+    <title>Web ePub Creator Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-color: #f7fafc;
+            --container-bg: #ffffff;
+            --text-color: #2d3748;
+            --input-bg: #ffffff;
+            --border-color: #cbd5e0;
+            --primary-color: #48bb78;
+            --primary-hover: #38a169;
+            --accent-color: #5a67d8;
+            --sidebar-active: #ebf8ff;
+        }
+
+        body.dark-mode {
+            --bg-color: #1a202c;
+            --container-bg: #2d3748;
+            --text-color: #edf2f7;
+            --input-bg: #1a202c;
+            --border-color: #4a5568;
+            --sidebar-active: #4a5568;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; transition: all 0.3s ease; }
+        .header-area { display: flex; justify-content: space-between; align-items: center; max-width: 800px; margin: 0 auto 20px auto; }
+        .main-container { width: 100%; max-width: 800px; margin: 0 auto; }
+        h1 { color: var(--primary-color); font-size: 24px; }
+        .subtitle { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+        
+        .mode-toggle-btn { background: var(--container-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 14px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        
+        .section { background-color: var(--container-bg); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border-color); }
+        .section-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+        
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; }
+        input[type="text"], input[type="file"] { width: 100%; padding: 10px; background-color: var(--input-bg); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-color); font-size: 14px; outline: none; }
+        
+        .pdf-box { background: rgba(72, 187, 120, 0.1); border: 2px dashed var(--primary-color); padding: 15px; border-radius: 8px; text-align: center; }
+        .status-message { font-size: 13px; margin-top: 8px; color: var(--accent-color); font-weight: bold; }
+
+        .workspace { display: flex; gap: 15px; margin-top: 15px; }
+        .sidebar { width: 180px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
+        .chapter-list { max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 4px; }
+        .chapter-item { padding: 8px; background: var(--input-bg); margin-bottom: 4px; border-radius: 4px; cursor: pointer; font-size: 13px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
+        .chapter-item.active { background-color: var(--sidebar-active); border-color: var(--accent-color); font-weight: bold; }
+        
+        .editor-container-wrapper { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; }
+        #editor-container { height: 280px; background-color: white; color: black; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
+        .ql-toolbar { background-color: #f0f4f8; border-top-left-radius: 6px; border-top-right-radius: 6px; }
+
+        .btn { display: block; width: 100%; padding: 12px; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; text-align: center; }
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-accent { background-color: var(--accent-color); padding: 8px; font-size: 13px; }
+        .btn-danger { background: none; border: none; color: #e53e3e; cursor: pointer; font-size: 12px; }
+
+        @media (max-width: 600px) { .workspace { flex-direction: column; } .sidebar { width: 100%; } }
+    </style>
 </head>
 <body>
-    <div class="app-container">
-        <header class="app-header">
-            <div class="header-main">
-                <h1><i class="fa-solid fa-book-open"></i> Web ePub Creator</h1>
-                <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle Dark/Light Mode">
-                    <i class="fa-solid fa-moon"></i>
-                </button>
-            </div>
-            <p>အခန်းများစွာ ထည့်သွင်း၍ ကိုယ်ပိုင် ePub စာအုပ် ဖန်တီးပါ</p>
-        </header>
 
-        <div class="main-content">
-            <aside class="sidebar">
-                <div class="card">
-                    <h3><i class="fa-solid fa-info-circle"></i> စာအုပ်အချက်အလက်</h3>
-                    <div class="input-group">
-                        <label for="bookTitle">စာအုပ်ခေါင်းစဉ်</label>
-                        <input type="text" id="bookTitle" placeholder="ဥပမာ - နွေဦးကဗျာများ">
-                    </div>
-                    <div class="input-group">
-                        <label for="bookAuthor">စာရေးဆရာအမည်</label>
-                        <input type="text" id="bookAuthor" placeholder="ဥပမာ - မောင်စွမ်းရည်">
-                    </div>
-                    <div class="input-group">
-                        <label for="coverImage">စာအုပ်မျက်နှာဖုံးပုံ (Cover Image)</label>
-                        <input type="file" id="coverImage" accept="image/jpeg, image/png">
-                    </div>
-                </div>
+<div class="header-area">
+    <div>
+        <h1>📘 Web ePub Creator Pro</h1>
+        <div class="subtitle">PDF မှ စာသားဆွဲထုတ်၍ စနစ်ကျသော ePub စာအုပ်များ ဖန်တီးပါ</div>
+    </div>
+    <button class="mode-toggle-btn" id="modeToggle">🌙 Night Mode</button>
+</div>
 
-                <div class="card chapter-card">
-                    <div class="chapter-header">
-                        <h3><i class="fa-solid fa-list"></i> အခန်းများ စာရင်း</h3>
-                        <button id="addChapterBtn" class="btn-sm"><i class="fa-solid fa-plus"></i> တိုးမည်</button>
-                    </div>
-                    <div id="chapterList" class="chapter-list"></div>
-                    <button id="generateBtn" class="btn btn-primary" style="margin-top: 15px;">
-                        <i class="fa-solid fa-download"></i> ePub ဖိုင် ထုတ်ယူမည်
-                    </button>
-                </div>
-            </aside>
-
-            <main class="editor-area card">
-                <div class="editor-header">
-                    <div class="input-group" style="margin-bottom: 0; flex-grow: 1;">
-                        <input type="text" id="chapterTitle" placeholder="အခန်းခေါင်းစဉ် ရိုက်ပါ... (ဥပမာ - အခန်း ၁)">
-                    </div>
-                </div>
-                <div id="editor-container"></div>
-            </main>
+<div class="main-container">
+    <div class="section">
+        <div class="section-title">ℹ️ စာအုပ်အချက်အလက်</div>
+        <div class="form-group">
+            <label>စာအုပ်ခေါင်းစဉ်</label>
+            <input type="text" id="bookTitle" placeholder="ဥပမာ - သမရတနာ">
+        </div>
+        <div class="form-group">
+            <label>စာရေးဆရာအမည်</label>
+            <input type="text" id="bookAuthor" placeholder="ဥပမာ - သဘာဝရတနာ ဆရာလေးဥတ္တရာ">
+        </div>
+        <div class="form-group">
+            <label>စာအုပ်မျက်နှာဖုံးပုံ (Cover Image)</label>
+            <input type="file" id="coverImage" accept="image/*">
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-    <script src="app.js"></script>
+    <div class="section">
+        <div class="section-title">📄 PDF မှ စာသားဆွဲထုတ်မည် (Optional)</div>
+        <div class="pdf-box">
+            <input type="file" id="pdfFile" accept="application/pdf" style="margin-bottom: 10px;">
+            <button class="btn btn-primary" style="width: auto; display: inline-block; padding: 8px 15px; font-size: 13px;" id="extractPdfBtn">⚡ PDF မှ စာသားများကို ဆွဲထုတ်မည်</button>
+            <div class="status-message" id="pdfStatus"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🔢 အခန်းများနှင့် စာသားများပြင်ဆင်ရန်</div>
+        <div class="workspace">
+            <div class="sidebar">
+                <button class="btn btn-accent" id="addChapterBtn">+ အခန်းတိုးမည်</button>
+                <div class="chapter-list" id="chapterList"></div>
+            </div>
+            <div class="editor-container-wrapper">
+                <div class="form-group">
+                    <label>အခန်းခေါင်းစဉ်</label>
+                    <input type="text" id="chapterTitle" value="Chapter 1">
+                </div>
+                <div class="form-group">
+                    <label>အခန်းတွင်းစာသား</label>
+                    <div id="editor-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn btn-primary" style="font-size: 16px; padding: 14px;" id="downloadEpub">📥 ePub ဖိုင် ထုတ်ယူမည်</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
