@@ -5,13 +5,13 @@ import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/f
 
 // သင့်ရဲ့ Firebase Config အစစ်အမှန်ကို ထည့်သွင်းထားခြင်း
 const firebaseConfig = {
-  apiKey: "AIzaSyAvfwpMNaomyi0gkMNusiTmvhkNSCiRnbg",
-  authDomain: "epub-creater-pro.firebaseapp.com",
-  projectId: "epub-creater-pro",
-  storageBucket: "epub-creater-pro.firebasestorage.app",
-  messagingSenderId: "506410443495",
-  appId: "1:506410443495:web:eb28948375bc993f9db842",
-  measurementId: "G-6D4KSJFV0C"
+  apiKey: "AIzaSyBk1jogWTVgJ9FNdnV7jf5rWXFT5pnx3uo",
+  authDomain: "epub-creater.firebaseapp.com",
+  projectId: "epub-creater",
+  storageBucket: "epub-creater.firebasestorage.app",
+  messagingSenderId: "1089709692644",
+  appId: "1:1089709692644:web:ae21c10edb2c18ff413ef1",
+  measurementId: "G-GZ3EFYZJWM"
 };
 
 // Firebase အား စတင်အသက်သွင်းခြင်း
