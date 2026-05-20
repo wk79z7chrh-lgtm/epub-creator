@@ -1,30 +1,24 @@
-// Firebase SDK Modules များကို CDN မှ လှမ်းခေါ်ခြင်း (Web App အတွက် အကောင်းဆုံး ပုံစံ)
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-// သင့်ရဲ့ Firebase Config အစစ်အမှန်ကို ထည့်သွင်းထားခြင်း
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyBk1jogWTVgJ9FNdnV7jf5rWXFT5pnx3uo",
   authDomain: "epub-creater.firebaseapp.com",
   projectId: "epub-creater",
   storageBucket: "epub-creater.firebasestorage.app",
   messagingSenderId: "1089709692644",
-  appId: "1:1089709692644:web:a0e9d2041c41eae7413ef1",
-  measurementId: "G-W8GX9E0V5T"
+  appId: "1:1089709692644:web:ae21c10edb2c18ff413ef1",
+  measurementId: "G-GZ3EFYZJWM"
 };
 
-// Firebase အား စတင်အသက်သွင်းခြင်း
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
-
-// Global Variables များသတ်မှတ်ခြင်း
-let quill;
-let chapters = [{ id: "ch-1", title: "Chapter 1", content: "" }];
-let activeChapterId = "ch-1";
-let currentUser = null;
+const analytics = getAnalytics(app);
 let currentLang = 'my';
 let unsubscribeSnapshot = null;
 
