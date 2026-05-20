@@ -4,27 +4,15 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChang
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // သင့်ရဲ့ Firebase Config အစစ်အမှန်ကို ထည့်သွင်းထားခြင်း
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyBk1jogWTVgJ9FNdnV7jf5rWXFT5pnx3uo",
   authDomain: "epub-creater.firebaseapp.com",
   projectId: "epub-creater",
   storageBucket: "epub-creater.firebasestorage.app",
   messagingSenderId: "1089709692644",
-  appId: "1:1089709692644:web:ae21c10edb2c18ff413ef1",
-  measurementId: "G-GZ3EFYZJWM"
+  appId: "1:1089709692644:web:a0e9d2041c41eae7413ef1",
+  measurementId: "G-W8GX9E0V5T"
 };
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 
 // Firebase အား စတင်အသက်သွင်းခြင်း
 const app = initializeApp(firebaseConfig);
