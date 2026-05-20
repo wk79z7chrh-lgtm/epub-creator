@@ -1,80 +1,93 @@
 <!DOCTYPE html>
-<html lang="my">
+<html lang="my" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web ePub Creator (Pro)</title>
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.snow.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Web ePub Creator</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header>
-        <div class="header-container">
-            <h1><i class="fas fa-book-open"></i> Web ePub Creator</h1>
-            <button id="theme-toggle" class="btn-icon" title="Theme ပြောင်းရန်">
-                <i class="fas fa-moon"></i>
+    <header class="app-header">
+        <div class="header-main">
+            <h1>📘 Web ePub Creator</h1>
+            <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
+                <span class="mode-icon">🌙</span>
             </button>
         </div>
+        <p class="subtitle">PDF ဖိုင်များမှ စာသားဆွဲထုတ်၍ အခန်းများစွာပါဝင်သော ePub စာအုပ် ဖန်တီးပါ</p>
     </header>
 
     <main class="container">
+        
         <section class="card">
-            <h2><i class="fas fa-info-circle"></i> စာအုပ်အချက်အလက်</h2>
+            <h2><span class="icon">ℹ️</span> စာအုပ်အချက်အလက်</h2>
+            
             <div class="input-group">
                 <label for="book-title">စာအုပ်ခေါင်းစဉ်</label>
                 <input type="text" id="book-title" placeholder="ဥပမာ - နွေဦးကဗျာများ">
             </div>
+
             <div class="input-group">
                 <label for="book-author">စာရေးဆရာအမည်</label>
                 <input type="text" id="book-author" placeholder="ဥပမာ - မောင်စွမ်းရည်">
             </div>
+
             <div class="input-group">
                 <label for="book-cover">စာအုပ်မျက်နှာဖုံးပုံ (Cover Image)</label>
                 <input type="file" id="book-cover" accept="image/*">
             </div>
-            
-            <div class="input-group pdf-box">
-                <label for="pdf-file"><i class="fas fa-file-pdf"></i> PDF မှ စာသားဆွဲထုတ်မည် (Optional)</label>
+
+            <div class="divider"></div>
+
+            <div class="pdf-section">
+                <label for="pdf-file" class="pdf-label">📄 PDF မှ စာသားဆွဲထုတ်မည် (Optional)</label>
                 <input type="file" id="pdf-file" accept=".pdf">
-                <button id="extract-btn" class="btn btn-success"><i class="fas fa-wand-magic-sparkles"></i> PDF မှ စာသားများကို ဆွဲထုတ်မည်</button>
+                <button type="button" id="extract-btn" class="btn btn-secondary">⚡ PDF မှ စာသားများကို ဆွဲထုတ်မည်</button>
             </div>
         </section>
 
         <section class="card">
             <div class="section-header">
-                <h2><i class="fas fa-list-ol"></i> အခန်းများ စာရင်း</h2>
-                <button id="add-chapter-btn" class="btn btn-primary"><i class="fas fa-plus"></i> တိုးမည်</button>
+                <h2><span class="icon">🔢</span> အခန်းများ စာရင်း</h2>
+                <button type="button" id="add-chapter-btn" class="btn btn-add">+ တိုးမည်</button>
             </div>
-            <div id="chapters-list" class="chapters-tab-container">
+
+            <div id="chapters-list" class="tabs-container">
                 </div>
-            
-            <div id="editor-section" class="editor-wrapper">
+
+            <div class="editor-section">
                 <div class="input-group">
                     <label for="chapter-title">အခန်းခေါင်းစဉ်</label>
-                    <input type="text" id="chapter-title" placeholder="ဥပမာ - အခန်း (၁)">
+                    <input type="text" id="chapter-title" value="Chapter 1">
                 </div>
-                
+
                 <div class="input-group">
                     <label>အကြောင်းအရာနှင့် ဓာတ်ပုံများ</label>
-                    <div class="custom-toolbar">
-                        <button id="insert-image-btn" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-image"></i> ဖုန်းထဲမှ ဓာတ်ပုံညှပ်ထည့်မည်
-                        </button>
-                        <input type="file" id="image-loader" accept="image/*" style="display: none;">
+                    
+                    <button type="button" id="insert-image-btn" class="btn btn-photo">
+                        🖼️ ဖုန်းထဲမှ ဓာတ်ပုံညှပ်ထည့်မည်
+                    </button>
+                    <input type="file" id="image-loader" accept="image/*" style="display: none;">
+                    
+                    <div id="editor-wrapper">
+                        <div id="editor-container"></div>
                     </div>
-                    <div id="editor-container"></div>
                 </div>
             </div>
 
-            <button id="generate-btn" class="btn btn-generate"><i class="fas fa-download"></i> ePub ဖိုင် ထုတ်ယူမည်</button>
+            <button type="button" id="generate-btn" class="btn btn-primary">📥 ePub ဖိုင် ထုတ်ယူမည်</button>
         </section>
+
     </main>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    
     <script src="app.js"></script>
 </body>
 </html>
