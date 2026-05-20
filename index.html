@@ -7,17 +7,20 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
     
     <link rel="stylesheet" href="style.css">
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
     <div class="app-container">
         <header class="app-header">
-            <h1><i class="fa-solid fa-book-open"></i> Web ePub Creator</h1>
+            <div class="header-main">
+                <h1><i class="fa-solid fa-book-open"></i> Web ePub Creator</h1>
+                <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle Dark/Light Mode">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+            </div>
             <p>အခန်းများစွာ ထည့်သွင်း၍ ကိုယ်ပိုင် ePub စာအုပ် ဖန်တီးပါ</p>
         </header>
 
@@ -44,8 +47,7 @@
                         <h3><i class="fa-solid fa-list"></i> အခန်းများ စာရင်း</h3>
                         <button id="addChapterBtn" class="btn-sm"><i class="fa-solid fa-plus"></i> တိုးမည်</button>
                     </div>
-                    <div id="chapterList" class="chapter-list">
-                        </div>
+                    <div id="chapterList" class="chapter-list"></div>
                     <button id="generateBtn" class="btn btn-primary" style="margin-top: 15px;">
                         <i class="fa-solid fa-download"></i> ePub ဖိုင် ထုတ်ယူမည်
                     </button>
@@ -54,12 +56,11 @@
 
             <main class="editor-area card">
                 <div class="editor-header">
-                    <div class="input-group" style="margin-bottom: 0; flex-grow: 1; margin-right: 15px;">
+                    <div class="input-group" style="margin-bottom: 0; flex-grow: 1;">
                         <input type="text" id="chapterTitle" placeholder="အခန်းခေါင်းစဉ် ရိုက်ပါ... (ဥပမာ - အခန်း ၁)">
                     </div>
                 </div>
-                <div id="editor-container">
-                    </div>
+                <div id="editor-container"></div>
             </main>
         </div>
     </div>
