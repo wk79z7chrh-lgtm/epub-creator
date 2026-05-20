@@ -1,4 +1,4 @@
-// 1. Quill Editor စတင်ခြင်း (စာလုံးအရောင်ပြောင်းလဲနိုင်မည့် စနစ်ထည့်သွင်းပြီး)
+// 1. Quill Editor စတင်ခြင်း
 const quill = new Quill('#editor-container', {
     theme: 'snow',
     placeholder: 'ဤနေရာတွင် အခန်းတွင်းစာသားများ ရေးသားပါ...',
@@ -6,7 +6,7 @@ const quill = new Quill('#editor-container', {
         toolbar: [
             [{ 'header': [1, 2, 3, false] }],
             ['bold', 'italic', 'underline', 'blockquote'],
-            [{ 'color': [] }], // ဤနေရာတွင် စာလုံးအရောင် စိတ်ကြိုက်ရွေးချယ်ရန် Palette ထည့်ပေးထားပါသည်
+            [{ 'color': [] }], 
             [{ 'list': 'ordered'}, { 'list': 'bullet' }],
             ['clean']
         ]
@@ -23,7 +23,6 @@ const currentTheme = localStorage.getItem('theme') || 'light';
 
 if (currentTheme === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
-    themeToggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
 }
 
 themeToggleBtn.addEventListener('click', () => {
@@ -31,11 +30,9 @@ themeToggleBtn.addEventListener('click', () => {
     if (theme === 'dark') {
         document.documentElement.removeAttribute('data-theme');
         localStorage.setItem('theme', 'light');
-        themeToggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
     } else {
         document.documentElement.setAttribute('data-theme', 'dark');
         localStorage.setItem('theme', 'dark');
-        themeToggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
     }
 });
 
@@ -101,7 +98,7 @@ function switchChapter(index) {
 
 // အခန်းဖျက်ခြင်း
 function deleteChapter(index) {
-    if (confirm("ဤအခန်းကို ဖျက်ရန် သေချာပါသလား?")) {
+    if (confirm("ဤအခန်းကို ဖျက်ရန် သေჩာပါသလား?")) {
         chapters.splice(index, 1);
         if (currentChapterIndex >= chapters.length) {
             currentChapterIndex = chapters.length - 1;
@@ -121,57 +118,17 @@ document.getElementById('chapterTitle').addEventListener('input', function() {
     }
 });
 
-// မျက်နှာဖုံးပုံပေါ်တွင် စာသားဆွဲပေးမည့် စနစ်
-function drawTextOnImage(file, title, author) {
+// မျက်နှာဖုံးပုံရင်းကို ဘာစာသားမှမထည့်ဘဲ ArrayBuffer ပြောင်းပေးမည့် Function အသစ်
+function processOriginalImage(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = function(event) {
-            const img = new Image();
-            img.onload = function() {
-                try {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
-                    
-                    const fontSizeTitle = Math.max(24, Math.floor(canvas.width * 0.065)); 
-                    const fontSizeAuthor = Math.max(16, Math.floor(canvas.width * 0.045));
-                    ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
-                    ctx.shadowBlur = 12;
-                    ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 4;
-                    ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#ffffff"; 
-                    
-                    const systemFonts = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-                    
-                    ctx.font = `bold ${fontSizeTitle}px ${systemFonts}`;
-                    const words = title.split(''); let line = ''; let lines = [];
-                    for (let n = 0; n < words.length; n++) {
-                        let testLine = line + words[n];
-                        if (ctx.measureText(testLine).width > canvas.width * 0.85 && n > 0) {
-                            lines.push(line); line = words[n];
-                        } else { line = testLine; }
-                    }
-                    lines.push(line);
-                    let currentY = (canvas.height * 0.45) - ((lines.length - 1) * fontSizeTitle * 1.4) / 2;
-                    for (let i = 0; i < lines.length; i++) {
-                        ctx.fillText(lines[i], canvas.width / 2, currentY);
-                        currentY += fontSizeTitle * 1.4;
-                    }
-                    
-                    ctx.font = `bold ${fontSizeAuthor}px ${systemFonts}`;
-                    ctx.fillText(author, canvas.width / 2, canvas.height * 0.85);
-                    
-                    canvas.toBlob((blob) => {
-                        const fileReader = new FileReader();
-                        fileReader.onload = (e) => resolve(e.target.result);
-                        fileReader.readAsArrayBuffer(blob);
-                    }, 'image/jpeg', 0.95);
-                } catch (e) { reject(e); }
-            };
-            img.src = event.target.result;
+            resolve(event.target.result); // ပုံကို စာမထည့်ဘဲ မူရင်းအတိုင်း တိုက်ရိုက်ယူသည်
         };
-        reader.readAsDataURL(file);
+        reader.onerror = function(err) {
+            reject(err);
+        };
+        reader.readAsArrayBuffer(file);
     });
 }
 
@@ -261,8 +218,9 @@ document.getElementById('generateBtn').addEventListener('click', async function(
 
     if (coverFile) {
         try {
-            const processedImageData = await drawTextOnImage(coverFile, title, author);
-            oebps.file(`cover.jpg`, processedImageData);
+            // စာအဖြူရောင်တွေ လုံးဝမပါဘဲ မူရင်းပုံအတိုင်း ထည့်သွင်းခြင်း
+            const originalImageData = await processOriginalImage(coverFile);
+            oebps.file(`cover.jpg`, originalImageData);
         } catch (e) {
             alert("ဓာတ်ပုံစီမံရာတွင် အမှားရှိပါသည် - " + e.message);
             return;
