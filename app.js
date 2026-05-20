@@ -1,7 +1,9 @@
+// ဘရောက်ဆာတွင် တိုက်ရိုက်အလုပ်လုပ်နိုင်သော Firebase SDK မော်ဂျူးများ (CDN လင့်ခ်များ)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+// သင်၏ တကယ့် Firebase Config အသစ်စက်စက်
 const firebaseConfig = {
   apiKey: "AIzaSyBk1jogWTVgJ9FNdnV7jf5rWXFT5pnx3uo",
   authDomain: "epub-creater.firebaseapp.com",
@@ -12,19 +14,11 @@ const firebaseConfig = {
   measurementId: "G-W8GX9E0V5T"
 };
 
+// Firebase စနစ်ကို စတင်သက်ဝင်စေခြင်း
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-let currentLang = 'my';
-let unsubscribeSnapshot = null;
-
-// PDF.js Worker Engine သတ်မှတ်ချက်
 if (typeof pdfjsLib !== 'undefined') {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 }
