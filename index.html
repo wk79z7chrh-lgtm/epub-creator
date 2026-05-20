@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web ePub Creator</title>
+    <title>Web ePub Creator Pro</title>
     
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
     
@@ -13,38 +13,44 @@
 
     <header class="app-header">
         <div class="header-main">
-            <h1>📘 Web ePub Creator</h1>
-            <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
-                <span class="mode-icon">🌙</span>
-            </button>
+            <h1 id="txt-app-title">📘 Web ePub Creator Pro</h1>
+            <div class="header-controls">
+                <select id="lang-select" class="control-select">
+                    <option value="my">မြန်မာစာ</option>
+                    <option value="en">English</option>
+                </select>
+                <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
+                    <span class="mode-icon">🌙</span>
+                </button>
+            </div>
         </div>
-        <p class="subtitle">PDF ဖိုင်များမှ စာသားဆွဲထုတ်၍ အခန်းများစွာပါဝင်သော ePub စာအုပ် ဖန်တီးပါ</p>
+        <p class="subtitle" id="txt-app-subtitle">PDF ဖိုင်များမှ စာသားဆွဲထုတ်၍ အခန်းများစွာပါဝင်သော ePub စာအုပ် ဖန်တီးပါ</p>
     </header>
 
     <main class="container">
         
         <section class="card">
-            <h2><span class="icon">ℹ️</span> စာအုပ်အချက်အလက်</h2>
+            <h2 id="txt-sec-meta">ℹ️ စာအုပ်အချက်အလက်</h2>
             
             <div class="input-group">
-                <label for="book-title">စာအုပ်ခေါင်းစဉ်</label>
+                <label for="book-title" id="txt-lbl-title">စာအုပ်ခေါင်းစဉ်</label>
                 <input type="text" id="book-title" placeholder="ဥပမာ - နွေဦးကဗျာများ">
             </div>
 
             <div class="input-group">
-                <label for="book-author">စာရေးဆရာအမည်</label>
+                <label for="book-author" id="txt-lbl-author">စာရေးဆရာအမည်</label>
                 <input type="text" id="book-author" placeholder="ဥပမာ - မောင်စွမ်းရည်">
             </div>
 
             <div class="input-group">
-                <label for="book-cover">စာအုပ်မျက်နှာဖုံးပုံ (Cover Image)</label>
+                <label for="book-cover" id="txt-lbl-cover">စာအုပ်မျက်နှာဖုံးပုံ (Cover Image)</label>
                 <input type="file" id="book-cover" accept="image/*">
             </div>
 
             <div class="divider"></div>
 
             <div class="pdf-section">
-                <label for="pdf-file" class="pdf-label">📄 PDF မှ စာသားဆွဲထုတ်မည် (Optional)</label>
+                <label for="pdf-file" class="pdf-label" id="txt-lbl-pdf">📄 PDF မှ စာသားဆွဲထုတ်မည် (Optional)</label>
                 <input type="file" id="pdf-file" accept=".pdf">
                 <button type="button" id="extract-btn" class="btn btn-secondary">⚡ PDF မှ စာသားများကို ဆွဲထုတ်မည်</button>
             </div>
@@ -52,31 +58,58 @@
 
         <section class="card">
             <div class="section-header">
-                <h2><span class="icon">🔢</span> အခန်းများ စာရင်း</h2>
+                <h2 id="txt-sec-chapters">🔢 အခန်းများ စာရင်း</h2>
                 <button type="button" id="add-chapter-btn" class="btn btn-add">+ တိုးမည်</button>
             </div>
 
-            <div id="chapters-list" class="tabs-container">
+            <div class="tabs-wrapper">
+                <div id="chapters-list" class="tabs-container">
+                    </div>
+                <div class="reorder-controls">
+                    <button type="button" id="move-left-btn" class="btn-nav" title="Move Left">◀</button>
+                    <button type="button" id="move-right-btn" class="btn-nav" title="Move Right">▶</button>
+                    <button type="button" id="delete-chapter-btn" class="btn-danger-sm" title="Delete Chapter">🗑️</button>
                 </div>
+            </div>
 
             <div class="editor-section">
                 <div class="input-group">
-                    <label for="chapter-title">အခန်းခေါင်းစဉ်</label>
+                    <label for="chapter-title" id="txt-lbl-chaptitle">အခန်းခေါင်းစဉ်</label>
                     <input type="text" id="chapter-title" value="Chapter 1">
                 </div>
 
                 <div class="input-group">
-                    <label>အကြောင်းအရာနှင့် ဓာတ်ပုံများ</label>
+                    <label id="txt-lbl-content">အကြောင်းအရာနှင့် ဓာတ်ပုံများ</label>
                     
-                    <button type="button" id="insert-image-btn" class="btn btn-photo">
-                        🖼️ ဖုန်းထဲမှ ဓာတ်ပုံညှပ်ထည့်မည်
-                    </button>
-                    <input type="file" id="image-loader" accept="image/*" style="display: none;">
+                    <div class="toolbar-extras">
+                        <button type="button" id="insert-image-btn" class="btn btn-photo">🖼️ ဓာတ်ပုံညှပ်ထည့်မည်</button>
+                        <input type="file" id="image-loader" accept="image/*" style="display: none;">
+                        
+                        <div class="font-controls">
+                            <select id="font-family-select" class="control-select-sm">
+                                <option value="system-ui">Default Font</option>
+                                <option value="Myanmar3">Myanmar3</option>
+                                <option value="Pyidaungsu">Pyidaungsu</option>
+                                <option value="monospace">Monospace</option>
+                            </select>
+                            <select id="font-size-select" class="control-select-sm">
+                                <option value="16px">16px (Normal)</option>
+                                <option value="18px">18px (Medium)</option>
+                                <option value="22px">22px (Large)</option>
+                            </select>
+                        </div>
+                    </div>
                     
                     <div id="editor-wrapper">
                         <div id="editor-container"></div>
                     </div>
                 </div>
+            </div>
+
+            <div class="toc-preview-section">
+                <h3 id="txt-lbl-toc">📋 စာအုပ်မာတိကာ အကြိုကြည့်ရှုရန်</h3>
+                <ul id="toc-preview-list">
+                    </ul>
             </div>
 
             <button type="button" id="generate-btn" class="btn btn-primary">📥 ePub ဖိုင် ထုတ်ယူမည်</button>
