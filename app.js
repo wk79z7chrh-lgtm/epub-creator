@@ -1,7 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+// Firebase Config (EPUB Creater Pro)
 const firebaseConfig = {
   apiKey: "AIzaSyAvfwpMNaomyi0gkMNusiTmvhkNSCiRnbg",
   authDomain: "epub-creater-pro.firebaseapp.com",
@@ -12,87 +9,89 @@ const firebaseConfig = {
   measurementId: "G-6D4KSJFV0C"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
+// HTML ထဲသို့ Firebase Libraries များကို Dynamic စနစ်ဖြင့် ထည့်သွင်းခြင်း
+const scripts = [
+    "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js",
+    "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js",
+    "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"
+];
 
-// စာမျက်နှာစဖွင့်ကတည်းက Login အခြေအနေကို စောင့်ကြည့်စစ်ဆေးခြင်း
-onAuthStateChanged(auth, (user) => {
-    const loginBtn = document.getElementById('loginBtn');
-    if (user) {
-        console.log("User logged in:", user.uid);
-        if (loginBtn) {
-            loginBtn.innerHTML = `👤 ${user.displayName || 'User'}`;
-            loginBtn.onclick = logout;
+function loadScripts(urls, callback) {
+    let loaded = 0;
+    urls.forEach(url => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = () => {
+            loaded++;
+            if (loaded === urls.length) callback();
+        };
+        document.head.appendChild(script);
+    });
+}
+
+// စနစ်တစ်ခုလုံးကို စတင်ပတ်မောင်းခြင်း
+loadScripts(scripts, () => {
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    auth.onAuthStateChanged((user) => {
+        const loginBtn = document.getElementById('loginBtn');
+        if (user) {
+            if (loginBtn) {
+                loginBtn.innerHTML = `👤 ${user.displayName || 'User'}`;
+                loginBtn.onclick = logout;
+            }
+            listenToData(user.uid, db);
+        } else {
+            if (loginBtn) {
+                loginBtn.innerHTML = "🔑 Login";
+                loginBtn.onclick = login;
+            }
+            clearUI();
         }
-        listenToData(user.uid);
-    } else {
-        console.log("No user logged in");
-        if (loginBtn) {
-            loginBtn.innerHTML = "🔑 Login";
-            loginBtn.onclick = login;
+    });
+
+    window.login = async function() {
+        try {
+            provider.setCustomParameters({ prompt: 'select_account' });
+            await auth.signInWithRedirect(provider);
+        } catch (error) {
+            alert("Login ဝင်၍မရပါ- " + error.message);
         }
-        clearUI();
-    }
+    };
+
+    window.logout = async function() {
+        try {
+            await auth.signOut();
+            alert("Logout ထွက်ပြီးပါပြီ။");
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    window.saveDataToFirebase = async function(data) {
+        const user = auth.currentUser;
+        if (!user) {
+            alert("ဒေတာသိမ်းရန် ဦးစွာ Login ဝင်ပေးပါဗျာ။");
+            return;
+        }
+        try {
+            await db.collection("users").doc(user.uid).set({
+                epubs: data,
+                updatedAt: new Date().toISOString()
+            });
+            console.log("Data saved successfully!");
+        } catch (error) {
+            alert("ဒေတာသိမ်းဆည်းမှု မအောင်မြင်ပါ- " + error.message);
+        }
+    };
 });
 
-// Redirect စနစ်ဖြင့် Login ဝင်ပြီး သင့် Website Folder ထဲ ပြန်လှည့်လာချိန်တွင် Result ကို ဖမ်းယူခြင်း
-getRedirectResult(auth)
-  .then((result) => {
-    if (result && result.user) {
-      alert(result.user.displayName + " အဖြစ် အောင်မြင်စွာ Login ဝင်ပြီးပါပြီဗျာ။");
-    }
-  }).catch((error) => {
-    console.error("Redirect Login Error:", error);
-  });
-
-// Login ဝင်သည့် Function (သင့် Website ရဲ့ Folder လမ်းကြောင်းအတိုင်း အတိအကျ ပြန်လှည့်လာစေရန် ပြင်ဆင်ထားပါသည်)
-window.login = async function() {
-    try {
-        provider.setCustomParameters({
-            prompt: 'select_account'
-        });
-        await signInWithRedirect(auth, provider);
-    } catch (error) {
-        console.error("Login Error:", error);
-        alert("Login ဝင်၍မရပါ- " + error.message);
-    }
-};
-
-// Logout ထွက်သည့် Function
-window.logout = async function() {
-    try {
-        await signOut(auth);
-        alert("Logout ထွက်ပြီးပါပြီ။");
-    } catch (error) {
-        console.error("Logout Error:", error);
-    }
-};
-
-// Firestore ထဲသို့ ဒေတာသိမ်းဆည်းခြင်း
-window.saveDataToFirebase = async function(data) {
-    const user = auth.currentUser;
-    if (!user) {
-        alert("ဒေတာသိမ်းရန် ဦးစွာ Login ဝင်ပေးပါဗျာ။");
-        return;
-    }
-    try {
-        await setDoc(doc(db, "users", user.uid), {
-            epubs: data,
-            updatedAt: new Date().toISOString()
-        });
-        console.log("Data saved successfully!");
-    } catch (error) {
-        console.error("Error saving data:", error);
-        alert("ဒေတာသိမ်းဆည်းမှု မအောင်မြင်ပါ- " + error.message);
-    }
-};
-
-// Firestore မှ ဒေတာများကို အချိန်နှင့်တပြေးညီ ပြန်လည်နားထောင်ခြင်း
-function listenToData(uid) {
-    onSnapshot(doc(db, "users", uid), (docSnap) => {
-        if (docSnap.exists()) {
+function listenToData(uid, db) {
+    db.collection("users").doc(uid).onSnapshot((docSnap) => {
+        if (docSnap.exists) {
             const data = docSnap.data();
             if (data && data.epubs) {
                 window.savedEpubs = data.epubs;
