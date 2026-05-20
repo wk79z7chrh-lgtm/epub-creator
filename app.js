@@ -1,313 +1,310 @@
-// PDF.js Worker လမ်းကြောင်း သတ်မှတ်ခြင်း
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+// Setup PDF.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-// 1. Quill Editor စတင်ခြင်း
-const quill = new Quill('#editor-container', {
-    theme: 'snow',
-    placeholder: 'ဤနေရာတွင် အခန်းတွင်းစာသားများ ရေးသားပါ သို့မဟုတ် ဘယ်ဘက်မှ PDF တင်၍ စာသားဆွဲထုတ်ပါ...',
-    modules: {
-        toolbar: [
-            [{ 'header': [1, 2, 3, false] }],
-            ['bold', 'italic', 'underline', 'blockquote'],
-            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            ['clean']
-        ]
-    }
+// Global App State
+let chapters = [{ id: 1, title: 'Chapter 1', content: '' }];
+let activeChapterId = 1;
+let quill;
+
+// Initialize App
+document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    initEditor();
+    renderTabs();
+    setupEventListeners();
 });
 
-let chapters = [{ title: 'Chapter 1', content: '' }];
-let currentChapterIndex = 0;
-
-// PDF ထဲမှ စာသားများ ဆွဲထုတ်ပေးမည့် Logic အသစ်
-document.getElementById('extractPdfBtn').addEventListener('click', async function() {
-    const pdfInput = document.getElementById('pdfInput');
-    const file = pdfInput.files[0];
+// Theme Logic (Dark/Light)
+function initTheme() {
+    const toggleBtn = document.getElementById('theme-toggle');
+    const savedTheme = localStorage.getItem('theme') || 'light';
     
-    if (!file) {
-        alert("ကျေးဇူးပြု၍ PDF ဖိုင်တစ်ခု အရင်ရွေးချယ်ပေးပါရန်။");
-        return;
-    }
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
 
-    const btn = document.getElementById('extractPdfBtn');
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> စာသားများ ဖတ်နေပါသည်...';
-
-    try {
-        const fileReader = new FileReader();
-        fileReader.onload = async function() {
-            const typedarray = new Uint8Array(this.result);
-            
-            // PDF ကို စတင်ဖွင့်ခြင်း
-            const pdf = await pdfjsLib.getDocument(typedarray).promise;
-            let fullTextHtml = '';
-
-            // PDF ရဲ့ စာမျက်နှာအားလုံးကို တစ်မျက်နှာချင်း လှည့်ပတ်ဖတ်ခြင်း
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                
-                let lastY = null;
-                let pageText = '';
-
-                // စာမျက်နှာတွင်းမှ စာလုံးများကို စာကြောင်းအလိုက် ပြန်စီခြင်း
-                for (const item of textContent.items) {
-                    if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) {
-                        pageText += '\n'; // စာကြောင်းအသစ်ဆင်းလျှင် Enter ခေါက်မည်
-                    }
-                    pageText += item.str;
-                    lastY = item.transform[5];
-                }
-                
-                // စာပိုဒ်ပုံစံဖြစ်အောင် HTML အဖြစ် ပြောင်းလဲခြင်း
-                if (pageText.trim()) {
-                    const paragraphs = pageText.split('\n');
-                    paragraphs.forEach(p => {
-                        if (p.trim()) {
-                            fullTextHtml += `<p>${p.trim()}</p>`;
-                        }
-                    });
-                }
-            }
-
-            if (!fullTextHtml) {
-                alert("PDF အတွင်းမှ စာသားများကို ဖတ်၍မရပါ (ရုပ်ပုံသီးသန့် PDF ဖြစ်နိုင်ပါသည်)။");
-            } else {
-                // ဆွဲထုတ်ရရှိလာသော စာသားများကို Editor ထဲသို့ တိုက်ရိုက်ထည့်ခြင်း
-                quill.clipboard.dangerouslyPasteHTML(fullTextHtml);
-                saveCurrentChapterState();
-                alert("PDF မှ စာသားများကို အောင်မြင်စွာ ဆွဲထုတ်ပြီးပါပြီဗျာ။");
-            }
-            
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        };
-        fileReader.readAsArrayBuffer(file);
+    toggleBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
         
-    } catch (error) {
-        alert("PDF ဖတ်ရာတွင် အမှားတစ်ခုရှိနေပါသည် - " + error.message);
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-    }
-});
-
-// UI တွင် အခန်းစာရင်းကို ပြန်လည်ရေးဆွဲပေးသည့် Function
-function renderChapterList() {
-    const listContainer = document.getElementById('chapterList');
-    listContainer.innerHTML = '';
-
-    chapters.forEach((ch, index) => {
-        const item = document.createElement('div');
-        item.className = `chapter-item ${index === currentChapterIndex ? 'active' : ''}`;
-        
-        const titleSpan = document.createElement('span');
-        titleSpan.textContent = ch.title || `Untitled Chapter ${index + 1}`;
-        titleSpan.style.flexGrow = '1';
-        titleSpan.onclick = () => switchChapter(index);
-
-        item.appendChild(titleSpan);
-
-        if (chapters.length > 1) {
-            const delBtn = document.createElement('button');
-            delBtn.className = 'delete-ch-btn';
-            delBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-            delBtn.onclick = (e) => {
-                e.stopPropagation();
-                deleteChapter(index);
-            };
-            item.appendChild(delBtn);
-        }
-
-        listContainer.appendChild(item);
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon(newTheme);
     });
 }
 
-function saveCurrentChapterState() {
-    if (chapters[currentChapterIndex]) {
-        chapters[currentChapterIndex].title = document.getElementById('chapterTitle').value.trim() || `Chapter ${currentChapterIndex + 1}`;
-        chapters[currentChapterIndex].content = quill.getSemanticHTML();
+function updateThemeIcon(theme) {
+    const icon = document.querySelector('#theme-toggle i');
+    if (theme === 'dark') {
+        icon.className = 'fas fa-sun';
+    } else {
+        icon.className = 'fas fa-moon';
     }
 }
 
-document.getElementById('addChapterBtn').addEventListener('click', function() {
-    saveCurrentChapterState();
-    chapters.push({ title: `Chapter ${chapters.length + 1}`, content: '' });
-    currentChapterIndex = chapters.length - 1;
-    
-    document.getElementById('chapterTitle').value = chapters[currentChapterIndex].title;
-    quill.setContents([]);
-    renderChapterList();
-});
-
-function switchChapter(index) {
-    saveCurrentChapterState();
-    currentChapterIndex = index;
-    
-    document.getElementById('chapterTitle').value = chapters[currentChapterIndex].title;
-    quill.clipboard.dangerouslyPasteHTML(chapters[currentChapterIndex].content);
-    renderChapterList();
-}
-
-function deleteChapter(index) {
-    if (confirm("ဤအခန်းကို ဖျက်ရန် သေჩာပါသလား?")) {
-        chapters.splice(index, 1);
-        if (currentChapterIndex >= chapters.length) {
-            currentChapterIndex = chapters.length - 1;
+// Editor Logic
+function initEditor() {
+    quill = new Quill('#editor-container', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline', 'blockquote'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['clean']
+            ]
         }
-        document.getElementById('chapterTitle').value = chapters[currentChapterIndex].title;
-        quill.clipboard.dangerouslyPasteHTML(chapters[currentChapterIndex].content);
-        renderChapterList();
-    }
+    });
+
+    // Save content to array dynamically
+    quill.on('text-change', () => {
+        const currentChap = chapters.find(c => c.id === activeChapterId);
+        if (currentChap) {
+            currentChap.content = quill.root.innerHTML;
+        }
+    });
 }
 
-document.getElementById('chapterTitle').addEventListener('input', function() {
-    chapters[currentChapterIndex].title = this.value;
-    const items = document.querySelectorAll('.chapter-item span');
-    if (items[currentChapterIndex]) {
-        items[currentChapterIndex].textContent = this.value || `Chapter ${currentChapterIndex + 1}`;
-    }
-});
+// Render Tabs Layout
+function renderTabs() {
+    const container = document.getElementById('chapters-list');
+    container.innerHTML = '';
 
-// မျက်နှာဖုံးပုံပေါ်တွင် စာသားဆွဲပေးမည့် စနစ်
-function drawTextOnImage(file, title, author) {
-    return new Promise((resolve, reject) => {
+    chapters.forEach(chap => {
+        const tab = document.createElement('div');
+        tab.className = `chapter-tab ${chap.id === activeChapterId ? 'active' : ''}`;
+        tab.innerText = chap.title;
+        tab.addEventListener('click', () => switchChapter(chap.id));
+        container.appendChild(tab);
+    });
+}
+
+function switchChapter(id) {
+    // Save current title before switching
+    const currentChap = chapters.find(c => c.id === activeChapterId);
+    if (currentChap) {
+        currentChap.title = document.getElementById('chapter-title').value || `Chapter ${currentChap.id}`;
+    }
+
+    activeChapterId = id;
+    const nextChap = chapters.find(c => c.id === activeChapterId);
+    
+    document.getElementById('chapter-title').value = nextChap.title;
+    quill.root.innerHTML = nextChap.content;
+    
+    renderTabs();
+}
+
+// Events Setup
+function setupEventListeners() {
+    // Add Chapter
+    document.getElementById('add-chapter-btn').addEventListener('click', () => {
+        const newId = chapters.length > 0 ? Math.max(...chapters.map(c => c.id)) + 1 : 1;
+        chapters.push({
+            id: newId,
+            title: `Chapter ${newId}`,
+            content: ''
+        });
+        switchChapter(newId);
+    });
+
+    // Dynamic Title Input Sync
+    document.getElementById('chapter-title').addEventListener('input', (e) => {
+        const currentChap = chapters.find(c => c.id === activeChapterId);
+        if (currentChap) {
+            currentChap.title = e.target.value || `Chapter ${currentChap.id}`;
+            // Debounced tab text update
+            const activeTab = document.querySelector('.chapter-tab.active');
+            if (activeTab) activeTab.innerText = currentChap.title;
+        }
+    });
+
+    // Image Inserter Tool Logic
+    const imgLoader = document.getElementById('image-loader');
+    document.getElementById('insert-image-btn').addEventListener('click', () => {
+        imgLoader.click();
+    });
+
+    imgLoader.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const range = quill.getSelection(true);
+                // Insert as Base64 Image inside editor string
+                quill.insertEmbed(range.index, 'image', event.target.result);
+                quill.setSelection(range.index + 1);
+            };
+            reader.readAsDataURL(file);
+        }
+        imgLoader.value = ''; // Reset input element
+    });
+
+    // PDF Extraction Logic
+    document.getElementById('extract-btn').addEventListener('click', async () => {
+        const fileInput = document.getElementById('pdf-file');
+        if (!fileInput.files.length) {
+            alert('ကျေးဇူးပြု၍ PDF ဖိုင်အရင်ရွေးချယ်ပေးပါရန်။');
+            return;
+        }
+
+        const file = fileInput.files[0];
         const reader = new FileReader();
-        reader.onload = function(event) {
-            const img = new Image();
-            img.onload = function() {
-                try {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = img.width; canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
-                    
-                    const fontSizeTitle = Math.max(24, Math.floor(canvas.width * 0.065)); 
-                    const fontSizeAuthor = Math.max(16, Math.floor(canvas.width * 0.045));
-                    ctx.shadowColor = "rgba(0, 0, 0, 0.85)"; ctx.shadowBlur = 12;
-                    ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 4;
-                    ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#ffffff"; 
-                    
-                    const systemFonts = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-                    ctx.font = `bold ${fontSizeTitle}px ${systemFonts}`;
-                    
-                    const words = title.split(''); let line = ''; let lines = [];
-                    for (let n = 0; n < words.length; n++) {
-                        let testLine = line + words[n];
-                        if (ctx.measureText(testLine).width > canvas.width * 0.85 && n > 0) {
-                            lines.push(line); line = words[n];
-                        } else { line = testLine; }
-                    }
-                    lines.push(line);
-                    let currentY = (canvas.height * 0.45) - ((lines.length - 1) * fontSizeTitle * 1.4) / 2;
-                    for (let i = 0; i < lines.length; i++) {
-                        ctx.fillText(lines[i], canvas.width / 2, currentY);
-                        currentY += fontSizeTitle * 1.4;
-                    }
-                    
-                    ctx.font = `bold ${fontSizeAuthor}px ${systemFonts}`;
-                    ctx.fillText(author, canvas.width / 2, canvas.height * 0.85);
-                    
-                    canvas.toBlob((blob) => {
-                        const fileReader = new FileReader();
-                        fileReader.onload = (e) => resolve(e.target.result);
-                        fileReader.readAsArrayBuffer(blob);
-                    }, 'image/jpeg', 0.95);
-                } catch (e) { reject(e); }
-            };
-            img.src = event.target.result;
+        
+        reader.onload = async function() {
+            const typedarray = new Uint8Array(this.result);
+            try {
+                const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                let fullText = '';
+                
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += `<h3>Page ${i}</h3><p>${pageText}</p><br>`;
+                }
+                
+                quill.root.innerHTML = fullText;
+                const currentChap = chapters.find(c => c.id === activeChapterId);
+                if (currentChap) currentChap.content = fullText;
+                
+                alert('PDF မှ စာသားများကို အောင်မြင်စွာ ဆွဲထုတ်ပြီးပါပြီ။');
+            } catch (err) {
+                alert('PDF ဖတ်ရာတွင် အမှားအယွင်းရှိနေပါသည်။');
+                console.error(err);
+            }
         };
-        reader.readAsDataURL(file);
+        reader.readAsArrayBuffer(file);
     });
-}
 
-// ePub ထုတ်လုပ်မည့် အဓိက Logic
-document.getElementById('generateBtn').addEventListener('click', async function() {
-    saveCurrentChapterState();
+    // ePub File Generation
+    document.getElementById('generate-btn').addEventListener('click', async () => {
+        // Save current active chapter fields
+        const currentChap = chapters.find(c => c.id === activeChapterId);
+        if (currentChap) currentChap.title = document.getElementById('chapter-title').value || `Chapter ${currentChap.id}`;
 
-    const title = document.getElementById('bookTitle').value.trim() || 'Untitled Book';
-    const author = document.getElementById('bookAuthor').value.trim() || 'Unknown Author';
-    const coverFile = document.getElementById('coverImage').files[0];
+        const bookTitle = document.getElementById('book-title').value || 'Untitled Book';
+        const bookAuthor = document.getElementById('book-author').value || 'Unknown Author';
+        const coverInput = document.getElementById('book-cover');
 
-    const zip = new JSZip();
-    zip.file("mimetype", "application/epub+zip", { compression: "STORE" });
-
-    const containerXml = `<?xml version="1.0" encoding="UTF-8"?>
+        const zip = new JSZip();
+        
+        // 1. mimetype
+        zip.file('mimetype', 'application/epub+zip', { compression: "STORE" });
+        
+        // 2. META-INF/container.xml
+        const containerXml = `<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
-    <rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles>
+    <rootfiles>
+        <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
+    </rootfiles>
 </container>`;
-    zip.folder("META-INF").file("container.xml", containerXml);
+        zip.folder('META-INF').file('container.xml', containerXml);
 
-    let manifestItems = ''; let spineItems = ''; let tocNavPoints = '';
+        // 3. OEBPS Files
+        const oebps = zip.folder('OEBPS');
+        
+        // Process Cover Image if exists
+        let hasCover = false;
+        if (coverInput.files.length > 0) {
+            const coverFile = coverInput.files[0];
+            const coverData = await fileToBuffer(coverFile);
+            oebps.file('cover.jpg', coverData);
+            hasCover = true;
+        }
 
-    chapters.forEach((ch, index) => {
-        const id = `chapter${index + 1}`;
-        manifestItems += `<item id="${id}" href="${id}.html" media-type="application/xhtml+xml"/>\n`;
-        spineItems += `<itemref idref="${id}"/>\n`;
-        tocNavPoints += `<navPoint id="navpoint-${index + 1}" playOrder="${index + 1}">
-            <navLabel><text>${ch.title}</text></navLabel>
-            <content src="${id}.html"/>
-        </navPoint>\n`;
-    });
+        // Chapters Injection
+        let manifestItems = '';
+        let spineItems = '';
+        
+        if (hasCover) {
+            manifestItems += `    <item id="cover-img" href="cover.jpg" media-type="image/jpeg"/>\n`;
+        }
 
-    let manifestCoverItem = ''; let metadataCoverMeta = '';
-    if (coverFile) {
-        manifestCoverItem = `<item id="cover-image" href="cover.jpg" media-type="image/jpeg"/>`;
-        metadataCoverMeta = `<meta name="cover" content="cover-image"/>`;
-    }
+        chapters.forEach((chap, idx) => {
+            const filename = `chapter_${chap.id}.xhtml`;
+            const xhtmlContent = `<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>${chap.title}</title>
+    <style>
+        body { font-family: sans-serif; padding: 5%; line-height: 1.6; }
+        h1 { text-align: center; color: #333333; }
+        img { max-width: 100%; height: auto; display: block; margin: 15px auto; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <h1>${chap.title}</h1>
+    ${chap.content}
+</body>
+</html>`;
+            oebps.file(filename, xhtmlContent);
+            
+            manifestItems += `    <item id="chap_${chap.id}" href="${filename}" media-type="application/xhtml+xml"/>\n`;
+            spineItems += `    <itemref idref="chap_${chap.id}"/>\n`;
+        });
 
-    const contentOpf = `<?xml version="1.0" encoding="UTF-8"?>
+        // content.opf Structure
+        const opfContent = `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="2.0">
-    <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-        <dc:title>${title}</dc:title><dc:creator>${author}</dc:creator><dc:language>my</dc:language>
-        ${metadataCoverMeta}
+    <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+        <dc:title>${bookTitle}</dc:title>
+        <dc:creator opf:role="aut">${bookAuthor}</dc:creator>
+        <dc:language>my</dc:language>
+        <dc:identifier id="bookid">urn:uuid:${generateUUID()}</dc:identifier>
     </metadata>
     <manifest>
         <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
-        ${manifestItems} ${manifestCoverItem}
+${manifestItems}
     </manifest>
-    <spine toc="ncx">${spineItems}</spine>
+    <spine toc="ncx">
+${spineItems}
+    </spine>
 </package>`;
+        oebps.file('content.opf', opfContent);
 
-    const tocNcx = `<?xml version="1.0" encoding="UTF-8"?>
+        // toc.ncx Structure
+        let ncxNav = '';
+        chapters.forEach((chap, idx) => {
+            ncxNav += `        <navPoint id="nav_${chap.id}" playOrder="${idx + 1}">
+            <navLabel><text>${chap.title}</text></navLabel>
+            <content src="chapter_${chap.id}.xhtml"/>
+        </navPoint>\n`;
+        });
+
+        const ncxContent = `<?xml version="1.0" encoding="UTF-8"?>
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
-    <head><meta name="dtb:uid" content="123456789X"/></head>
-    <docTitle><text>${title}</text></docTitle>
-    <navMap>${tocNavPoints}</navMap>
+    <head>
+        <meta name="dtb:uid" content="urn:uuid:12345"/>
+        <meta name="dtb:depth" content="1"/>
+    </head>
+    <docTitle><text>${bookTitle}</text></docTitle>
+    <navMap>
+${ncxNav}
+    </navMap>
 </ncx>`;
+        oebps.file('toc.ncx', ncxContent);
 
-    const oebps = zip.folder("OEBPS");
-    oebps.file("content.opf", contentOpf);
-    oebps.file("toc.ncx", tocNcx);
-
-    chapters.forEach((ch, index) => {
-        const chapterHtml = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <title>${ch.title}</title>
-    <style>body { font-family: sans-serif; padding: 10px; line-height: 1.6; } h1 { color: #333333; text-align: center; } p { margin-bottom: 1em; text-align: justify; }</style>
-</head>
-<body><h1>${ch.title}</h1><div>${ch.content}</div></body>
-</html>`;
-        oebps.file(`chapter${index + 1}.html`, chapterHtml);
-    });
-
-    if (coverFile) {
-        try {
-            const processedImageData = await drawTextOnImage(coverFile, title, author);
-            oebps.file(`cover.jpg`, processedImageData);
-        } catch (e) {
-            alert("ဓာတ်ပုံစီမံရာတွင် အမှားရှိပါသည် - " + e.message); return;
-        }
-    }
-
-    zip.generateAsync({ type: "blob" }).then(function(content) {
+        // Download Final ePub Zip File
+        const content = await zip.generateAsync({ type: 'blob' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(content);
-        link.download = `${title.replace(/\s+/g, '_')}.epub`;
+        link.download = `${bookTitle}.epub`;
         link.click();
     });
-});
+}
 
-renderChapterList();
-document.getElementById('chapterTitle').value = chapters[0].title;
+// Helpers
+function fileToBuffer(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
