@@ -1,24 +1,23 @@
 :root {
     --bg-color: #f4f6f9;
     --card-bg: #ffffff;
-    --primary-color: #4f46e5;
-    --primary-hover: #4338ca;
+    --primary-color: #059669; /* ခရမ်းရောင်မှ လှပသော အစိမ်းရောင်သို့ ပြောင်းလဲထားပါသည် */
+    --primary-hover: #047857;
     --text-color: #1f2937;
     --text-muted: #6b7280;
     --border-color: #e5e7eb;
-    --active-color: #e0e7ff;
+    --active-color: #d1fae5; /* Active ဖြစ်ချိန် အစိမ်းနုရောင်အဝါး */
     --input-bg: #ffffff;
     --item-bg: #f9fafb;
 }
 
-/* Night Mode (Dark Theme) သတ်မှတ်ချက်များ */
 [data-theme="dark"] {
     --bg-color: #111827;
     --card-bg: #1f2937;
     --text-color: #f3f4f6;
     --text-muted: #9ca3af;
     --border-color: #374151;
-    --active-color: #312e81;
+    --active-color: #064e3b;
     --input-bg: #374151;
     --item-bg: #111827;
 }
@@ -27,7 +26,8 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Inter', sans-serif;
+    /* မြန်မာယူနီကုဒ် Fonts များ စနစ်တကျ သတ်မှတ်ခြင်း */
+    font-family: 'Pyidaungsu', 'Noto Sans Myanmar', 'Inter', sans-serif;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
@@ -65,7 +65,6 @@ body {
     color: var(--text-muted);
 }
 
-/* Night Mode Switcher ခလုတ်စတိုင် */
 .theme-toggle-btn {
     background: var(--card-bg);
     color: var(--primary-color);
@@ -147,7 +146,6 @@ h3 {
     cursor: pointer;
 }
 
-/* Chapter List Styles */
 .chapter-header {
     display: flex;
     justify-content: space-between;
@@ -250,7 +248,6 @@ h3 {
     border-color: var(--border-color);
 }
 
-/* Quill Editor Dark Mode ပြင်ဆင်ချက်များ */
 .ql-toolbar.ql-snow {
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
