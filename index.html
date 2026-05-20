@@ -1,126 +1,70 @@
 <!DOCTYPE html>
-<html lang="my" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web ePub Creator Pro</title>
+    <title>Multi-Chapter Web ePub Creator</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
     
     <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1><i class="fa-solid fa-book-open"></i> Web ePub Creator</h1>
+            <p>အခန်းများစွာ ထည့်သွင်း၍ ကိုယ်ပိုင် ePub စာအုပ် ဖန်တီးပါ</p>
+        </header>
 
-    <header class="app-header">
-        <div class="header-main">
-            <h1 id="txt-app-title">📘 Web ePub Creator Pro</h1>
-            <div class="header-controls">
-                <select id="lang-select" class="control-select">
-                    <option value="my">မြန်မာစာ</option>
-                    <option value="en">English</option>
-                </select>
-                <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
-                    <span class="mode-icon">🌙</span>
-                </button>
-            </div>
-        </div>
-        <p class="subtitle" id="txt-app-subtitle">PDF ဖိုင်များမှ စာသားဆွဲထုတ်၍ အခန်းများစွာပါဝင်သော ePub စာအုပ် ဖန်တီးပါ</p>
-    </header>
-
-    <main class="container">
-        
-        <section class="card">
-            <h2 id="txt-sec-meta">ℹ️ စာအုပ်အချက်အလက်</h2>
-            
-            <div class="input-group">
-                <label for="book-title" id="txt-lbl-title">စာအုပ်ခေါင်းစဉ်</label>
-                <input type="text" id="book-title" placeholder="ဥပမာ - နွေဦးကဗျာများ">
-            </div>
-
-            <div class="input-group">
-                <label for="book-author" id="txt-lbl-author">စာရေးဆရာအမည်</label>
-                <input type="text" id="book-author" placeholder="ဥပမာ - မောင်စွမ်းရည်">
-            </div>
-
-            <div class="input-group">
-                <label for="book-cover" id="txt-lbl-cover">စာအုပ်မျက်နှာဖုံးပုံ (Cover Image)</label>
-                <input type="file" id="book-cover" accept="image/*">
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="pdf-section">
-                <label for="pdf-file" class="pdf-label" id="txt-lbl-pdf">📄 PDF မှ စာသားဆွဲထုတ်မည် (Optional)</label>
-                <input type="file" id="pdf-file" accept=".pdf">
-                <button type="button" id="extract-btn" class="btn btn-secondary">⚡ PDF မှ စာသားများကို ဆွဲထုတ်မည်</button>
-            </div>
-        </section>
-
-        <section class="card">
-            <div class="section-header">
-                <h2 id="txt-sec-chapters">🔢 အခန်းများ စာရင်း</h2>
-                <button type="button" id="add-chapter-btn" class="btn btn-add">+ တိုးမည်</button>
-            </div>
-
-            <div class="tabs-wrapper">
-                <div id="chapters-list" class="tabs-container">
+        <div class="main-content">
+            <aside class="sidebar">
+                <div class="card">
+                    <h3><i class="fa-solid fa-info-circle"></i> စာအုပ်အချက်အလက်</h3>
+                    <div class="input-group">
+                        <label for="bookTitle">စာအုပ်ခေါင်းစဉ်</label>
+                        <input type="text" id="bookTitle" placeholder="ဥပမာ - နွေဦးကဗျာများ">
                     </div>
-                <div class="reorder-controls">
-                    <button type="button" id="move-left-btn" class="btn-nav" title="Move Left">◀</button>
-                    <button type="button" id="move-right-btn" class="btn-nav" title="Move Right">▶</button>
-                    <button type="button" id="delete-chapter-btn" class="btn-danger-sm" title="Delete Chapter">🗑️</button>
-                </div>
-            </div>
-
-            <div class="editor-section">
-                <div class="input-group">
-                    <label for="chapter-title" id="txt-lbl-chaptitle">အခန်းခေါင်းစဉ်</label>
-                    <input type="text" id="chapter-title" value="Chapter 1">
+                    <div class="input-group">
+                        <label for="bookAuthor">စာရေးဆရာအမည်</label>
+                        <input type="text" id="bookAuthor" placeholder="ဥပမာ - မောင်စွမ်းရည်">
+                    </div>
+                    <div class="input-group">
+                        <label for="coverImage">စာအုပ်မျက်နှာဖုံးပုံ (Cover Image)</label>
+                        <input type="file" id="coverImage" accept="image/jpeg, image/png">
+                    </div>
                 </div>
 
-                <div class="input-group">
-                    <label id="txt-lbl-content">အကြောင်းအရာနှင့် ဓာတ်ပုံများ</label>
-                    
-                    <div class="toolbar-extras">
-                        <button type="button" id="insert-image-btn" class="btn btn-photo">🖼️ ဓာတ်ပုံညှပ်ထည့်မည်</button>
-                        <input type="file" id="image-loader" accept="image/*" style="display: none;">
-                        
-                        <div class="font-controls">
-                            <select id="font-family-select" class="control-select-sm">
-                                <option value="system-ui">Default Font</option>
-                                <option value="Myanmar3">Myanmar3</option>
-                                <option value="Pyidaungsu">Pyidaungsu</option>
-                                <option value="monospace">Monospace</option>
-                            </select>
-                            <select id="font-size-select" class="control-select-sm">
-                                <option value="16px">16px (Normal)</option>
-                                <option value="18px">18px (Medium)</option>
-                                <option value="22px">22px (Large)</option>
-                            </select>
+                <div class="card chapter-card">
+                    <div class="chapter-header">
+                        <h3><i class="fa-solid fa-list"></i> အခန်းများ စာရင်း</h3>
+                        <button id="addChapterBtn" class="btn-sm"><i class="fa-solid fa-plus"></i> တိုးမည်</button>
+                    </div>
+                    <div id="chapterList" class="chapter-list">
                         </div>
-                    </div>
-                    
-                    <div id="editor-wrapper">
-                        <div id="editor-container"></div>
+                    <button id="generateBtn" class="btn btn-primary" style="margin-top: 15px;">
+                        <i class="fa-solid fa-download"></i> ePub ဖိုင် ထုတ်ယူမည်
+                    </button>
+                </div>
+            </aside>
+
+            <main class="editor-area card">
+                <div class="editor-header">
+                    <div class="input-group" style="margin-bottom: 0; flex-grow: 1; margin-right: 15px;">
+                        <input type="text" id="chapterTitle" placeholder="အခန်းခေါင်းစဉ် ရိုက်ပါ... (ဥပမာ - အခန်း ၁)">
                     </div>
                 </div>
-            </div>
+                <div id="editor-container">
+                    </div>
+            </main>
+        </div>
+    </div>
 
-            <div class="toc-preview-section">
-                <h3 id="txt-lbl-toc">📋 စာအုပ်မာတိကာ အကြိုကြည့်ရှုရန်</h3>
-                <ul id="toc-preview-list">
-                    </ul>
-            </div>
-
-            <button type="button" id="generate-btn" class="btn btn-primary">📥 ePub ဖိုင် ထုတ်ယူမည်</button>
-        </section>
-
-    </main>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-    
     <script src="app.js"></script>
 </body>
 </html>
