@@ -1,4 +1,4 @@
-// 1. Quill Editor စတင်ခြင်း
+// 1. Quill Editor စတင်ခြင်း (စာလုံးအရောင်ပြောင်းလဲနိုင်မည့် စနစ်ထည့်သွင်းပြီး)
 const quill = new Quill('#editor-container', {
     theme: 'snow',
     placeholder: 'ဤနေရာတွင် အခန်းတွင်းစာသားများ ရေးသားပါ...',
@@ -6,6 +6,7 @@ const quill = new Quill('#editor-container', {
         toolbar: [
             [{ 'header': [1, 2, 3, false] }],
             ['bold', 'italic', 'underline', 'blockquote'],
+            [{ 'color': [] }], // ဤနေရာတွင် စာလုံးအရောင် စိတ်ကြိုက်ရွေးချယ်ရန် Palette ထည့်ပေးထားပါသည်
             [{ 'list': 'ordered'}, { 'list': 'bullet' }],
             ['clean']
         ]
@@ -20,7 +21,6 @@ let currentChapterIndex = 0;
 const themeToggleBtn = document.getElementById('themeToggleBtn');
 const currentTheme = localStorage.getItem('theme') || 'light';
 
-// စဖွင့်ချင်း သိမ်းထားခဲ့တဲ့ Theme အတိုင်း သတ်မှတ်ခြင်း
 if (currentTheme === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
     themeToggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
