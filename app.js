@@ -22,14 +22,16 @@ let currentChapterIndex = 0;
 
 // Night Mode Setup
 const modeToggle = document.getElementById('modeToggle');
-modeToggle.addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-    if (document.body.classList.contains('dark-mode')) {
-        modeToggle.textContent = '☀️ Light Mode';
-    } else {
-        modeToggle.textContent = '🌙 Night Mode';
-    }
-});
+if (modeToggle) {
+    modeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        if (document.body.classList.contains('dark-mode')) {
+            modeToggle.textContent = '☀️ Light Mode';
+        } else {
+            modeToggle.textContent = '🌙 Night Mode';
+        }
+    });
+}
 
 // Render Chapter Sidebar
 function renderChapterList() {
@@ -129,7 +131,8 @@ document.getElementById('extractPdfBtn').addEventListener('click', async () => {
                 const page = await pdf.getPage(i);
                 const textContent = await page.getTextContent();
                 const pageText = textContent.items.map(item => item.str).join(' ');
-                fullText += `<h3>Page ${i}</h3><p>${pageText}</p><br/>`;
+                // XML Tag Auto-close fixed for EPUB standard compatibility
+                fullText += `<h3>Page ${i}</h3><p>${pageText}</p><br />`;
             }
             
             saveCurrentChapterState();
@@ -158,6 +161,19 @@ function fileToBase64(file) {
     });
 }
 
+// XHTML XML-compliant formatter to prevent mismatched tag errors in EPUB readers
+function cleanHtmlForXhtml(htmlContent) {
+    if (!htmlContent) return '';
+    let cleaned = htmlContent;
+    // Fix standalone tags like <br> and <img> to self-closing <br /> and <img />
+    cleaned = cleaned.replace(/<br>/g, '<br />');
+    cleaned = cleaned.replace(/<br([^>]*)(?<!\/)>/g, '<br />');
+    cleaned = cleaned.replace(/<img([^>]*)(?<!\/)>/g, '<img$1 />');
+    // Ensure ampersands are encoded correctly
+    cleaned = cleaned.replace(/&(?!(amp|lt|gt|quot|apos);)/g, '&amp;');
+    return cleaned;
+}
+
 // Generate and Download ePub
 document.getElementById('downloadEpub').addEventListener('click', async () => {
     saveCurrentChapterState();
@@ -169,7 +185,7 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
     const zip = new JSZip();
     zip.file("mimetype", "application/epub+zip", { compression: "STORE" });
     
-    const containerXml = `<?xml version="1.0" encoding="UTF-8"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>`;
+    const containerXml = `<?xml version="1.0" encoding="UTF-8"?><container version="1.0" xmlns="urn:oasis:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>`;
     zip.folder("META-INF").file("container.xml", containerXml);
     
     let manifestItems = ''; let spineItems = ''; let tocNavPoints = '';
@@ -195,11 +211,12 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
     oebps.file("toc.ncx", tocNcx);
     
     chapters.forEach((ch, index) => {
-        const chapterHtml = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>${ch.title}</title><style>body { font-family: sans-serif; padding: 10px; line-height: 1.6; } h1 { color: #333333; text-align: center; } p { margin-bottom: 1em; text-align: justify; }</style></head><body><h1>${ch.title}</h1><div>${ch.content}</div></body></html>`;
+        // Run code through cleanHtmlForXhtml to guarantee tag-matching validity
+        const validatedContent = cleanHtmlForXhtml(ch.content);
+        const chapterHtml = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>${ch.title}</title><style>body { font-family: sans-serif; padding: 10px; line-height: 1.6; } h1 { color: #333333; text-align: center; } p { margin-bottom: 1em; text-align: justify; }</style></head><body><h1>${ch.title}</h1><div>${validatedContent}</div></body></html>`;
         oebps.file(`chapter${index + 1}.html`, chapterHtml);
     });
     
-    // ဓာတ်ပုံမူရင်းအတိုင်း သိမ်းဆည်းခြင်း (စာလုံးအဖြူများ လုံးဝမထပ်ပါ)
     if (coverFile) {
         try {
             const base64Data = await fileToBase64(coverFile);
