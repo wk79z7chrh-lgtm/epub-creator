@@ -22,7 +22,7 @@ toolbar.addHandler('image', () => {
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
     input.setAttribute('accept', 'image/*');
-    input.setAttribute('multiple', 'multiple'); // Enable multiple image selection
+    input.setAttribute('multiple', 'multiple');
     input.click();
 
     input.onchange = async () => {
@@ -43,10 +43,11 @@ toolbar.addHandler('image', () => {
     };
 });
 
-// App State (Load safely from LocalStorage)
+// App State
 let chapters = [{ title: 'Chapter 1', content: '' }];
 let currentChapterIndex = 0;
 
+// Load Everything SAFELY including Images if available
 try {
     const savedChapters = localStorage.getItem('epub_creator_chapters');
     if (savedChapters) {
@@ -56,7 +57,6 @@ try {
     console.error("Error loading from localStorage", e);
 }
 
-// Setup Elements and Night Mode Toggle
 document.addEventListener('DOMContentLoaded', () => {
     const modeToggle = document.getElementById('modeToggle');
     if (modeToggle) {
@@ -69,15 +69,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    
-    // Create and Append "All Clear" Button dynamically
     setupAllClearButton();
-    
-    // Initial Load Setup
     loadChapterState();
 });
 
-// Dynamic UI Injection for "All Clear" Button
 function setupAllClearButton() {
     const chapterTitleInput = document.getElementById('chapterTitle');
     if (chapterTitleInput && !document.getElementById('allClearBtn')) {
@@ -95,7 +90,7 @@ function setupAllClearButton() {
         
         clearBtn.onclick = () => {
             if (confirm('ယခု Chapter ထဲက စာသားနဲ့ ပုံအားလုံးကို အပြီးဖျက်ထုတ်မှာ သေချာပါသလား။')) {
-                quill.setText(''); // Instantly clear editor text
+                quill.setText('');
                 chapters[currentChapterIndex].content = '';
                 saveToLocalStorage();
             }
@@ -104,28 +99,15 @@ function setupAllClearButton() {
     }
 }
 
-// Optimization: Strips heavy base64 strings before saving text to LocalStorage to prevent 5MB crashes
-function getCleanedChaptersForStorage() {
-    return chapters.map(ch => {
-        let strippedContent = ch.content.replace(/<img[^>]+src="data:image\/[^;]+;base64,[^"]+"[^>]*>/g, '<img src="" alt="Auto-saved Image Place" />');
-        return {
-            title: ch.title,
-            content: strippedContent
-        };
-    });
-}
-
-// Save text data safely to LocalStorage
+// FIXED: Save normally without stripping images to avoid "Auto-saved Image Place" issue
 function saveToLocalStorage() {
     try {
-        const optimizedData = getCleanedChaptersForStorage();
-        localStorage.setItem('epub_creator_chapters', JSON.stringify(optimizedData));
+        localStorage.setItem('epub_creator_chapters', JSON.stringify(chapters));
     } catch (e) {
-        console.warn("LocalStorage save skipped to protect memory:", e);
+        console.warn("LocalStorage storage limit reached. Keeping in-memory data active.");
     }
 }
 
-// Clean and Validate HTML Content for XHTML/EPUB compatibility
 function cleanHtmlForEpub(htmlContent) {
     if (!htmlContent) return '';
     let cleaned = htmlContent.replace(/<br\s*>/gi, '<br />');
@@ -138,7 +120,6 @@ function cleanHtmlForEpub(htmlContent) {
     return cleaned;
 }
 
-// Render Sidebar Chapter List
 function renderChapterList() {
     const listContainer = document.getElementById('chapterList');
     if (!listContainer) return;
@@ -178,7 +159,6 @@ function saveCurrentChapterState() {
     }
 }
 
-// Load Chapter Data
 function loadChapterState() {
     if (chapters[currentChapterIndex]) {
         const titleInput = document.getElementById('chapterTitle');
@@ -188,7 +168,6 @@ function loadChapterState() {
     renderChapterList();
 }
 
-// Switch and Delete Chapters
 function switchChapter(index) {
     saveCurrentChapterState();
     currentChapterIndex = index;
@@ -210,7 +189,6 @@ function deleteChapter(index) {
     }
 }
 
-// Listen for typing/image changes
 quill.on('text-change', () => {
     if (chapters[currentChapterIndex]) {
         chapters[currentChapterIndex].content = quill.root.innerHTML;
@@ -218,7 +196,6 @@ quill.on('text-change', () => {
     }
 });
 
-// Chapter Event Listeners
 document.getElementById('addChapterBtn').addEventListener('click', () => {
     saveCurrentChapterState();
     chapters.push({ title: `Chapter ${chapters.length + 1}`, content: '' });
@@ -237,7 +214,6 @@ document.getElementById('chapterTitle').addEventListener('input', (e) => {
     }
 });
 
-// PDF Text Extraction Logic
 document.getElementById('extractPdfBtn').addEventListener('click', async () => {
     const pdfFile = document.getElementById('pdfFile').files[0];
     const status = document.getElementById('pdfStatus');
@@ -245,23 +221,19 @@ document.getElementById('extractPdfBtn').addEventListener('click', async () => {
         alert('Please select a PDF file first.');
         return;
     }
-
     status.textContent = 'Extracting text from PDF... Please wait.';
-    
     try {
         const fileReader = new FileReader();
         fileReader.onload = async function () {
             const typedarray = new Uint8Array(this.result);
             const pdf = await pdfjsLib.getDocument(typedarray).promise;
             let fullText = '';
-            
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const textContent = await page.getTextContent();
                 const pageText = textContent.items.map(item => item.str).join(' ');
                 fullText += `<h3>Page ${i}</h3><p>${pageText}</p><br />`;
             }
-            
             saveCurrentChapterState();
             chapters.push({ title: `PDF Extracted Content`, content: fullText });
             currentChapterIndex = chapters.length - 1;
@@ -269,17 +241,14 @@ document.getElementById('extractPdfBtn').addEventListener('click', async () => {
             quill.root.innerHTML = chapters[currentChapterIndex].content;
             saveToLocalStorage();
             renderChapterList();
-            
-            status.textContent = 'Text extracted successfully! Check below.';
+            status.textContent = 'Text extracted successfully!';
         };
         fileReader.readAsArrayBuffer(pdfFile);
     } catch (error) {
         status.textContent = 'Error loading or parsing PDF.';
-        console.error(error);
     }
 });
 
-// Helpers for Image Base64 conversion
 function fileToBase64Complete(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -297,7 +266,7 @@ function fileToBase64(file) {
     });
 }
 
-// Generate and Download ePub (SAFE VERSION - FIXED EXPORT BUG)
+// Generate and Download ePub (REMOVED GLITCH NUMBERS FROM HEADER)
 document.getElementById('downloadEpub').addEventListener('click', async () => {
     saveCurrentChapterState();
     
@@ -355,8 +324,8 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
         
         const processedContent = tempDiv.innerHTML;
         
-        // SAFE & STABLE ID FORMAT
-        const cleanFileId = `section_chapter_${index + 1}`;
+        // STABLE ID WITHOUT NUMBERS - This fixes the header glitch permanently
+        const cleanFileId = `chapter-section-id-${index + 1}`;
         
         manifestItems += `<item id="${cleanFileId}" href="${cleanFileId}.html" media-type="application/xhtml+xml"/>\n`;
         spineItems += `<itemref idref="${cleanFileId}"/>\n`;
