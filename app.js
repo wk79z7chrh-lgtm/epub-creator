@@ -1,7 +1,7 @@
 // Configure PDF.js Worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-// Initialize Quill Editor with Simple Toolbar
+// Initialize Quill Editor with Simple Toolbar (Supports Images)
 const quill = new Quill('#editor-container', {
     theme: 'snow',
     placeholder: 'Write chapter content here...',
@@ -165,7 +165,7 @@ document.getElementById('extractPdfBtn').addEventListener('click', async () => {
     }
 });
 
-// Helper for Cover Image base64 conversion (No Text Overlay)
+// Helper for Image Base64 conversion
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -175,7 +175,7 @@ function fileToBase64(file) {
     });
 }
 
-// Generate and Download ePub
+// Generate and Download ePub (With Internal Images Support)
 document.getElementById('downloadEpub').addEventListener('click', async () => {
     saveCurrentChapterState();
     
@@ -192,37 +192,56 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
     let manifestItems = '';
     let spineItems = '';
     let tocNavPoints = '';
+    let imageManifestItems = '';
     
-    chapters.forEach((ch, index) => {
+    const oebps = zip.folder("OEBPS");
+    let imageCounter = 1;
+
+    // Process each chapter and extract inline images
+    for (let index = 0; index < chapters.length; index++) {
+        const ch = chapters[index];
+        let chapterContent = ch.content;
+        
+        // Find all base64 images inside <img> tags
+        const imgRegex = /<img[^>]+src="data:image\/([^;]+);base64,([^"]+)"[^>]*>/g;
+        let match;
+        
+        while ((match = imgRegex.exec(ch.content)) !== null) {
+            const ext = match[1]; // e.g., png, jpeg
+            const base64Data = match[2];
+            const imgFileName = `img_${imageCounter}.${ext}`;
+            const imgId = `inline_img_${imageCounter}`;
+            
+            // Save image file to OEBPS folder
+            oebps.file(imgFileName, base64Data, { base64: true });
+            
+            // Add to manifest
+            imageManifestItems += `<item id="${imgId}" href="${imgFileName}" media-type="image/${ext}"/>\n`;
+            
+            // Replace base64 data string with the relative file path for EPUB compliance
+            const replacementRegex = new RegExp(`<img[^>]+src="data:image\/${ext};base64,${base64Data.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}"[^>]*>`, 'g');
+            chapterContent = chapterContent.replace(replacementRegex, `<img src="${imgFileName}" alt="Image" />`);
+            
+            imageCounter++;
+        }
+        
         const id = `chapter${index + 1}`;
         manifestItems += `<item id="${id}" href="${id}.html" media-type="application/xhtml+xml"/>\n`;
         spineItems += `<itemref idref="${id}"/>\n`;
         tocNavPoints += `<navPoint id="navpoint-${index + 1}" playOrder="${index + 1}"><navLabel><text>${ch.title}</text></navLabel><content src="${id}.html"/></navPoint>\n`;
-    });
+        
+        // Clean and save the processed chapter HTML
+        const cleanedContent = cleanHtmlForEpub(chapterContent);
+        const chapterHtml = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>${ch.title}</title><style>body { font-family: sans-serif; padding: 10px; } h1 { text-align: center; } img { max-width: 100%; height: auto; display: block; margin: 10px auto; }</style></head><body><h1>${ch.title}</h1><div>${cleanedContent}</div></body></html>`;
+        oebps.file(`${id}.html`, chapterHtml);
+    }
     
     let manifestCoverItem = '';
     let metadataCoverMeta = '';
     if (coverFile) {
         manifestCoverItem = `<item id="cover-image" href="cover.jpg" media-type="image/jpeg"/>`;
         metadataCoverMeta = `<meta name="cover" content="cover-image"/>`;
-    }
-    
-    const contentOpf = `<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="2.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>${title}</dc:title><dc:creator>${author}</dc:creator><dc:language>en</dc:language>${metadataCoverMeta}</metadata><manifest><item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>${manifestItems}${manifestCoverItem}</manifest><spine toc="ncx">${spineItems}</spine></package>`;
-    const tocNcx = `<?xml version="1.0" encoding="UTF-8"?><ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><head><meta name="dtb:uid" content="123456789X"/></head><docTitle><text>${title}</text></docTitle><navMap>${tocNavPoints}</navMap></ncx>`;
-
-    const oebps = zip.folder("OEBPS");
-    oebps.file("content.opf", contentOpf);
-    oebps.file("toc.ncx", tocNcx);
-    
-    chapters.forEach((ch, index) => {
-        const cleanedContent = cleanHtmlForEpub(ch.content);
-        const chapterHtml = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>${ch.title}</title><style>body { font-family: sans-serif; padding: 10px; } h1 { text-align: center; }</style></head><body><h1>${ch.title}</h1><div>${cleanedContent}</div></body></html>`;
-        oebps.file(`chapter${index + 1}.html`, chapterHtml);
-    });
-    
-    if (coverFile) {
         try {
-            // Directly use the uploaded file without drawing any text over it
             const base64Data = await fileToBase64(coverFile);
             oebps.file("cover.jpg", base64Data, { base64: true });
         } catch (e) {
@@ -230,6 +249,12 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
             return;
         }
     }
+    
+    const contentOpf = `<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="2.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>${title}</dc:title><dc:creator>${author}</dc:creator><dc:language>en</dc:language>${metadataCoverMeta}</metadata><manifest><item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>${manifestItems}${imageManifestItems}${manifestCoverItem}</manifest><spine toc="ncx">${spineItems}</spine></package>`;
+    const tocNcx = `<?xml version="1.0" encoding="UTF-8"?><ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><head><meta name="dtb:uid" content="123456789X"/></head><docTitle><text>${title}</text></docTitle><navMap>${tocNavPoints}</navMap></ncx>`;
+
+    oebps.file("content.opf", contentOpf);
+    oebps.file("toc.ncx", tocNcx);
     
     zip.generateAsync({ type: "blob" }).then(function(content) {
         const link = document.createElement('a');
