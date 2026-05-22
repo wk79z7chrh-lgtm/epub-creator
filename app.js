@@ -297,7 +297,7 @@ function fileToBase64(file) {
     });
 }
 
-// Generate and Download ePub (REMOVED CHAPTER NUMBERS IN ID TO FIXED HEADER GLITCH)
+// Generate and Download ePub (SAFE VERSION - FIXED EXPORT BUG)
 document.getElementById('downloadEpub').addEventListener('click', async () => {
     saveCurrentChapterState();
     
@@ -355,8 +355,8 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
         
         const processedContent = tempDiv.innerHTML;
         
-        // FIXED: Using string-based unique IDs without direct numerical indexes to stop ePub Readers from printing chapter numbers in Header
-        const cleanFileId = `sec_${btoa(ch.title || 'ch').replace(/[^a-zA-Z]/g, '') || 'sect'}_${index}`;
+        // SAFE & STABLE ID FORMAT
+        const cleanFileId = `section_chapter_${index + 1}`;
         
         manifestItems += `<item id="${cleanFileId}" href="${cleanFileId}.html" media-type="application/xhtml+xml"/>\n`;
         spineItems += `<itemref idref="${cleanFileId}"/>\n`;
