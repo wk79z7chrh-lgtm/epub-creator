@@ -100,7 +100,6 @@ function setupAllClearButton() {
                 saveToLocalStorage();
             }
         };
-        // Insert right after the chapter title input field
         chapterTitleInput.parentNode.insertBefore(clearBtn, chapterTitleInput.nextSibling);
     }
 }
@@ -108,7 +107,6 @@ function setupAllClearButton() {
 // Optimization: Strips heavy base64 strings before saving text to LocalStorage to prevent 5MB crashes
 function getCleanedChaptersForStorage() {
     return chapters.map(ch => {
-        // Strip out base64 image data just for LocalStorage, keeps the text and image placements safe
         let strippedContent = ch.content.replace(/<img[^>]+src="data:image\/[^;]+;base64,[^"]+"[^>]*>/g, '<img src="" alt="Auto-saved Image Place" />');
         return {
             title: ch.title,
@@ -117,7 +115,7 @@ function getCleanedChaptersForStorage() {
     });
 }
 
-// Save text data safely to LocalStorage without heavy image payload
+// Save text data safely to LocalStorage
 function saveToLocalStorage() {
     try {
         const optimizedData = getCleanedChaptersForStorage();
@@ -190,6 +188,7 @@ function loadChapterState() {
     renderChapterList();
 }
 
+// Switch and Delete Chapters
 function switchChapter(index) {
     saveCurrentChapterState();
     currentChapterIndex = index;
@@ -211,7 +210,7 @@ function deleteChapter(index) {
     }
 }
 
-// Listen for typing/image insert changes in Quill Editor
+// Listen for typing/image changes
 quill.on('text-change', () => {
     if (chapters[currentChapterIndex]) {
         chapters[currentChapterIndex].content = quill.root.innerHTML;
@@ -280,7 +279,7 @@ document.getElementById('extractPdfBtn').addEventListener('click', async () => {
     }
 });
 
-// Helper for Image Base64 conversion
+// Helpers for Image Base64 conversion
 function fileToBase64Complete(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -298,7 +297,7 @@ function fileToBase64(file) {
     });
 }
 
-// Generate and Download ePub (Robust Multi-Image Packager)
+// Generate and Download ePub (REMOVED CHAPTER NUMBERS IN ID TO FIXED HEADER GLITCH)
 document.getElementById('downloadEpub').addEventListener('click', async () => {
     saveCurrentChapterState();
     
@@ -355,14 +354,17 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
         }
         
         const processedContent = tempDiv.innerHTML;
-        const id = `chapter${index + 1}`;
-        manifestItems += `<item id="${id}" href="${id}.html" media-type="application/xhtml+xml"/>\n`;
-        spineItems += `<itemref idref="${id}"/>\n`;
-        tocNavPoints += `<navPoint id="navpoint-${index + 1}" playOrder="${index + 1}"><navLabel><text>${ch.title}</text></navLabel><content src="${id}.html"/></navPoint>\n`;
+        
+        // FIXED: Using string-based unique IDs without direct numerical indexes to stop ePub Readers from printing chapter numbers in Header
+        const cleanFileId = `sec_${btoa(ch.title || 'ch').replace(/[^a-zA-Z]/g, '') || 'sect'}_${index}`;
+        
+        manifestItems += `<item id="${cleanFileId}" href="${cleanFileId}.html" media-type="application/xhtml+xml"/>\n`;
+        spineItems += `<itemref idref="${cleanFileId}"/>\n`;
+        tocNavPoints += `<navPoint id="nav-${cleanFileId}" playOrder="${index + 1}"><navLabel><text>${ch.title}</text></navLabel><content src="${cleanFileId}.html"/></navPoint>\n`;
         
         const cleanedContent = cleanHtmlForEpub(processedContent);
         const chapterHtml = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>${ch.title}</title><style>body { font-family: sans-serif; padding: 10px; } h1 { text-align: center; } img { max-width: 100%; height: auto; display: block; margin: 10px auto; }</style></head><body><h1>${ch.title}</h1><div>${cleanedContent}</div></body></html>`;
-        oebps.file(`${id}.html`, chapterHtml);
+        oebps.file(`${cleanFileId}.html`, chapterHtml);
     }
     
     let manifestCoverItem = '';
