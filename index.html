@@ -19,13 +19,15 @@
             --sidebar-width: 260px;
         }
 
+        /* ပုံထဲကအတိုင်း အတိအကျ ညှိပေးထားသော Deep Navy Blue မျက်စိအေး ကာလာစနစ် */
         body.dark-mode {
-            --bg-color: #1a1a1a;
-            --container-bg: #2d2d2d;
-            --text-color: #f5f5f5;
-            --border-color: #444444;
-            --primary-color: #357abd;
+            --bg-color: #1a1e29;        /* ပုံထဲကအတိုင်း ပြာမှိုင်းမှိုင်း အမှောင်ရောင် နောက်ခံ */
+            --container-bg: #232a38;    /* အတွင်း Box ကွက်များအတွက် တိမ်ပြာရင့်ရောင် */
+            --text-color: #b2becd;      /* စာသားများ ဖတ်ရသက်သာစေမည့် မီးခိုးပြာနုရောင် */
+            --border-color: #2d384c;    /* အကန့်လိုင်းလေးများ အရောင် */
+            --primary-color: #51a4fa;    /* ခလုတ်အပြာနုရောင် */
             --secondary-color: #8e44ad;
+            --success-color: #52be80;    /* ပုံထဲကအတိုင်း လှပသော စိမ်းစိမ်းစိုစို ခလုတ်ရောင် */
         }
 
         * {
@@ -139,16 +141,16 @@
 
         /* Backup system container layout */
         .backup-section {
-            border: 2px dashed var(--secondary-color);
+            border: 2px dashed var(--primary-color);
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 15px;
-            background-color: rgba(155, 89, 182, 0.05);
+            background-color: rgba(81, 164, 250, 0.05);
         }
         .backup-title {
             font-size: 0.85em;
             font-weight: bold;
-            color: var(--secondary-color);
+            color: var(--primary-color);
             margin-bottom: 8px;
             text-align: center;
             text-transform: uppercase;
@@ -187,12 +189,36 @@
             font-size: 0.8em;
         }
 
+        /* Editor Customizing for Dark Mode */
         #editor-container {
             height: 400px;
             background-color: #ffffff;
             color: #333333;
             border-bottom-left-radius: 6px;
             border-bottom-right-radius: 6px;
+        }
+
+        body.dark-mode #editor-container {
+            background-color: #232a38 !important;
+            color: #b2becd !important;
+            border: 1px solid var(--border-color);
+        }
+
+        body.dark-mode .ql-toolbar {
+            background-color: #1a1e29 !important;
+            border: 1px solid var(--border-color);
+        }
+
+        body.dark-mode .ql-snow .ql-stroke {
+            stroke: #b2becd !important;
+        }
+
+        body.dark-mode .ql-snow .ql-fill {
+            fill: #b2becd !important;
+        }
+
+        body.dark-mode .ql-snow .ql-picker {
+            color: #b2becd !important;
         }
 
         .ql-toolbar {
@@ -258,12 +284,12 @@
             <hr style="border:0; border-top:1px solid var(--border-color); margin:5px 0;">
 
             <h3>အခန်းများ (Chapters)</h3>
-            <button id="addChapterBtn" class="btn-secondary">+ အခန်းတိုးမည် (Add Chapter)</button>
+            <button id="addChapterBtn" class="btn-primary">+ အခန်းတိုးမည် (Add Chapter)</button>
             <div class="chapter-list" id="chapterList"></div>
 
             <hr style="border:0; border-top:1px solid var(--border-color); margin:5px 0;">
 
-            <div class="form-group" style="background:#4a90e21a; padding:10px; border-radius:6px; border:1px solid var(--primary-color);">
+            <div class="form-group" style="background:rgba(81, 164, 250, 0.1); padding:10px; border-radius:6px; border:1px solid var(--primary-color);">
                 <label style="color:var(--primary-color);">📄 PDF မှ စာသားထုတ်ယူရန်</label>
                 <input type="file" id="pdfFile" accept=".pdf">
                 <button id="extractPdfBtn" style="margin-top:8px; padding:6px; font-size:0.9em;">Import PDF Text</button>
