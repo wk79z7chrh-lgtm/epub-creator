@@ -1,6 +1,4 @@
-// Configure PDF.js Worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-// Initialize Quill Editor with Blogger-like Toolbar Settings
 const quill = new Quill('#editor-container', {
 theme: 'snow',
 placeholder: 'ဤနေရာတွင် အခန်းတွင်းစာသားများ ရေးသားပါ...',
@@ -17,10 +15,8 @@ toolbar: [
 ]
 }
 });
-// App State
 let chapters = [{ title: 'Chapter 1', content: '' }];
 let currentChapterIndex = 0;
-// Night Mode Setup
 const modeToggle = document.getElementById('modeToggle');
 if (modeToggle) {
 modeToggle.addEventListener('click', () => {
@@ -32,7 +28,6 @@ modeToggle.textContent = '🌙 Night Mode';
 }
 });
 }
-// Render Chapter Sidebar
 function renderChapterList() {
 const listContainer = document.getElementById('chapterList');
 if (!listContainer) return;
@@ -83,7 +78,6 @@ quill.root.innerHTML = chapters[currentChapterIndex].content;
 renderChapterList();
 }
 }
-// Event Listeners for Chapters
 document.getElementById('addChapterBtn').addEventListener('click', () => {
 saveCurrentChapterState();
 chapters.push({ title: ⁠Chapter ${chapters.length + 1}⁠, content: '' });
@@ -98,7 +92,6 @@ chapters[currentChapterIndex].title = e.target.value;
 renderChapterList();
 }
 });
-// PDF Text Extraction Logic
 document.getElementById('extractPdfBtn').addEventListener('click', async () => {
 const pdfFile = document.getElementById('pdfFile').files[0];
 const status = document.getElementById('pdfStatus');
@@ -133,7 +126,17 @@ status.textContent = 'Error: PDF ဖတ်၍မရပါ။';
 console.error(error);
 }
 });
-// Helper for Cover Image base64 conversion
+// XML Tag ပိတ်တာတွေကို သေချာစစ်ဆေးပေးမယ့် စနစ်သစ်
+function cleanHtmlForXhtml(htmlContent) {
+if (!htmlContent) return '';
+let cleaned = htmlContent;
+// 
+ ကို <br /> ဖြစ်အောင် ပိတ်ပေးခြင်း
+cleaned = cleaned.replace(/<br\s*/?>/gi, '<br />');
+// <img> ကို <img /> ဖြစ်အောင် ပိတ်ပေးခြင်း
+cleaned = cleaned.replace(/<img([^>])\s/?>/gi, '<img$1 />');
+return cleaned;
+}
 function fileToBase64(file) {
 return new Promise((resolve, reject) => {
 const reader = new FileReader();
@@ -142,18 +145,6 @@ reader.onload = () => resolve(reader.result.split(',')[1]);
 reader.onerror = error => reject(error);
 });
 }
-// XHTML XML-compliant formatter to prevent mismatched tag errors in EPUB readers
-function cleanHtmlForXhtml(htmlContent) {
-if (!htmlContent) return '';
-let cleaned = htmlContent;
-cleaned = cleaned.replace(/
-/g, '<br />');
-cleaned = cleaned.replace(/<br([^>])(?<!/)>/g, '<br />');
-cleaned = cleaned.replace(/<img([^>])(?<!/)>/g, '<img$1 />');
-cleaned = cleaned.replace(/&(?!amp|lt|gt|quot|apos;)/g, '&');
-return cleaned;
-}
-// Generate and Download ePub
 document.getElementById('downloadEpub').addEventListener('click', async () => {
 saveCurrentChapterState();
 const title = document.getElementById('bookTitle').value.trim() || 'Untitled Book';
@@ -201,5 +192,4 @@ link.download = ⁠${title.replace(/\s+/g, '_')}.epub⁠;
 link.click();
 });
 });
-// Run Initial
 renderChapterList();
