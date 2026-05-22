@@ -47,7 +47,7 @@ toolbar.addHandler('image', () => {
 let chapters = [{ title: 'Chapter 1', content: '' }];
 let currentChapterIndex = 0;
 
-// Load Everything SAFELY including Images if available
+// Load Everything SAFELY from LocalStorage
 try {
     const savedChapters = localStorage.getItem('epub_creator_chapters');
     if (savedChapters) {
@@ -99,12 +99,12 @@ function setupAllClearButton() {
     }
 }
 
-// FIXED: Save normally without stripping images to avoid "Auto-saved Image Place" issue
+// Save to local memory safely
 function saveToLocalStorage() {
     try {
         localStorage.setItem('epub_creator_chapters', JSON.stringify(chapters));
     } catch (e) {
-        console.warn("LocalStorage storage limit reached. Keeping in-memory data active.");
+        console.warn("Storage limit note: Data remains safe in current session.");
     }
 }
 
@@ -266,7 +266,7 @@ function fileToBase64(file) {
     });
 }
 
-// Generate and Download ePub (REMOVED GLITCH NUMBERS FROM HEADER)
+// Generate and Download ePub (COMPLETE REMOVAL OF ALL NUMERICAL FILENAMES & ID GLITCHES)
 document.getElementById('downloadEpub').addEventListener('click', async () => {
     saveCurrentChapterState();
     
@@ -288,6 +288,16 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
     const oebps = zip.folder("OEBPS");
     let imageCounter = 1;
 
+    // Helper to generate alphabetical ID chunks instead of numbers (e.g., chapter_a, chapter_b)
+    function getAlphabetId(num) {
+        let ret = '';
+        while (num >= 0) {
+            ret = String.fromCharCode(97 + (num % 26)) + ret;
+            num = Math.floor(num / 26) - 1;
+        }
+        return ret;
+    }
+
     for (let index = 0; index < chapters.length; index++) {
         const ch = chapters[index];
         
@@ -306,8 +316,9 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
                     const ext = mimeType.split('/')[1] || 'jpeg';
                     const base64Data = parts[1];
                     
-                    const imgFileName = `img_${imageCounter}.${ext}`;
-                    const imgId = `inline_img_${imageCounter}`;
+                    const imgAlphaCode = getAlphabetId(imageCounter);
+                    const imgFileName = `image_file_${imgAlphaCode}.${ext}`;
+                    const imgId = `img_id_${imgAlphaCode}`;
                     
                     oebps.file(imgFileName, base64Data, { base64: true });
                     imageManifestItems += `<item id="${imgId}" href="${imgFileName}" media-type="${mimeType}"/>\n`;
@@ -324,8 +335,9 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
         
         const processedContent = tempDiv.innerHTML;
         
-        // STABLE ID WITHOUT NUMBERS - This fixes the header glitch permanently
-        const cleanFileId = `chapter-section-id-${index + 1}`;
+        // ULTIMATE FIX: Alphabetical IDs and Filenames to prevent ePub Reader Apps from auto-printing header numbers
+        const alphaChapterCode = getAlphabetId(index);
+        const cleanFileId = `chapter_section_doc_${alphaChapterCode}`;
         
         manifestItems += `<item id="${cleanFileId}" href="${cleanFileId}.html" media-type="application/xhtml+xml"/>\n`;
         spineItems += `<itemref idref="${cleanFileId}"/>\n`;
@@ -339,11 +351,11 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
     let manifestCoverItem = '';
     let metadataCoverMeta = '';
     if (coverFile) {
-        manifestCoverItem = `<item id="cover-image" href="cover.jpg" media-type="image/jpeg"/>`;
+        manifestCoverItem = `<item id="cover-image" href="cover_page_img.jpg" media-type="image/jpeg"/>`;
         metadataCoverMeta = `<meta name="cover" content="cover-image"/>`;
         try {
             const base64Data = await fileToBase64(coverFile);
-            oebps.file("cover.jpg", base64Data, { base64: true });
+            oebps.file("cover_page_img.jpg", base64Data, { base64: true });
         } catch (e) {
             alert("Error processing cover image: " + e.message);
             return;
