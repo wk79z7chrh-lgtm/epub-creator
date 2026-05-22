@@ -16,9 +16,18 @@ const quill = new Quill('#editor-container', {
     }
 });
 
-// App State (Load from LocalStorage if exists, otherwise load default)
-let chapters = JSON.parse(localStorage.getItem('epub_creator_chapters')) || [{ title: 'Chapter 1', content: '' }];
+// App State (Load safely from LocalStorage)
+let chapters = [{ title: 'Chapter 1', content: '' }];
 let currentChapterIndex = 0;
+
+try {
+    const savedChapters = localStorage.getItem('epub_creator_chapters');
+    if (savedChapters) {
+        chapters = JSON.parse(savedChapters);
+    }
+} catch (e) {
+    console.error("Error loading from localStorage", e);
+}
 
 // Night Mode Toggle
 document.addEventListener('DOMContentLoaded', () => {
@@ -38,9 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
     loadChapterState();
 });
 
-// Save all chapters data to LocalStorage automatically
+// Save to LocalStorage safely (Handles large image storage strings)
 function saveToLocalStorage() {
-    localStorage.setItem('epub_creator_chapters', JSON.stringify(chapters));
+    try {
+        localStorage.setItem('epub_creator_chapters', JSON.stringify(chapters));
+    } catch (e) {
+        console.warn("Storage limit reached or failed to save images directly:", e);
+    }
 }
 
 // Clean and Validate HTML Content for XHTML/EPUB compatibility
@@ -48,8 +61,9 @@ function cleanHtmlForEpub(htmlContent) {
     if (!htmlContent) return '';
     let cleaned = htmlContent.replace(/<br\s*>/gi, '<br />');
     cleaned = cleaned.replace(/<img([^>]*)\s*>/gi, (match, p1) => {
-        if (!p1.endsWith('/')) {
-            return `<img${p1.trim()} />`;
+        if (!p1.trim().endsWith('/')) {
+            // Remove unclosed trailing brackets and fix it
+            return `<img ${p1.replace(/\/$/, '').trim()} />`;
         }
         return match;
     });
@@ -92,14 +106,15 @@ function saveCurrentChapterState() {
     if (titleInput && chapters[currentChapterIndex]) {
         chapters[currentChapterIndex].title = titleInput.value.trim() || `Chapter ${currentChapterIndex + 1}`;
         chapters[currentChapterIndex].content = quill.root.innerHTML;
-        saveToLocalStorage(); // Auto save to browser storage
+        saveToLocalStorage();
     }
 }
 
 // Load Chapter on App Startup
 function loadChapterState() {
     if (chapters[currentChapterIndex]) {
-        document.getElementById('chapterTitle').value = chapters[currentChapterIndex].title;
+        const titleInput = document.getElementById('chapterTitle');
+        if (titleInput) titleInput.value = chapters[currentChapterIndex].title;
         quill.root.innerHTML = chapters[currentChapterIndex].content;
     }
     renderChapterList();
@@ -205,7 +220,7 @@ function fileToBase64(file) {
     });
 }
 
-// Generate and Download ePub (With Internal Images Support)
+// Generate and Download ePub (Robust Image Parser Included)
 document.getElementById('downloadEpub').addEventListener('click', async () => {
     saveCurrentChapterState();
     
@@ -229,32 +244,51 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
 
     for (let index = 0; index < chapters.length; index++) {
         const ch = chapters[index];
-        let chapterContent = ch.content;
         
-        const imgRegex = /<img[^>]+src="data:image\/([^;]+);base64,([^"]+)"[^>]*>/g;
-        let match;
+        // Create a temporary element to parse HTML correctly without complex Regex errors
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = ch.content;
+        const images = tempDiv.getElementsByTagName('img');
         
-        while ((match = imgRegex.exec(ch.content)) !== null) {
-            const ext = match[1];
-            const base64Data = match[2];
-            const imgFileName = `img_${imageCounter}.${ext}`;
-            const imgId = `inline_img_${imageCounter}`;
+        // Process each image inside the chapter html
+        for (let i = 0; i < images.length; i++) {
+            const img = images[i];
+            const src = img.getAttribute('src');
             
-            oebps.file(imgFileName, base64Data, { base64: true });
-            imageManifestItems += `<item id="${imgId}" href="${imgFileName}" media-type="image/${ext}"/>\n`;
-            
-            const replacementRegex = new RegExp(`<img[^>]+src="data:image\/${ext};base64,${base64Data.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}"[^>]*>`, 'g');
-            chapterContent = chapterContent.replace(replacementRegex, `<img src="${imgFileName}" alt="Image" />`);
-            
-            imageCounter++;
+            if (src && src.startsWith('data:image/')) {
+                try {
+                    const parts = src.split(';base64,');
+                    const mimeType = parts[0].split(':')[1]; // e.g. "image/png"
+                    const ext = mimeType.split('/')[1] || 'jpeg'; // e.g. "png"
+                    const base64Data = parts[1];
+                    
+                    const imgFileName = `img_${imageCounter}.${ext}`;
+                    const imgId = `inline_img_${imageCounter}`;
+                    
+                    // Save image file to OEBPS folder
+                    oebps.file(imgFileName, base64Data, { base64: true });
+                    
+                    // Add to manifest items
+                    imageManifestItems += `<item id="${imgId}" href="${imgFileName}" media-type="${mimeType}"/>\n`;
+                    
+                    // Replace the src attribute with the real internal file name
+                    img.setAttribute('src', imgFileName);
+                    img.removeAttribute('alt'); // clean unneeded attrs for standard compliance
+                    
+                    imageCounter++;
+                } catch (imgErr) {
+                    console.error("Failed to parse base64 image: ", imgErr);
+                }
+            }
         }
         
+        const processedContent = tempDiv.innerHTML;
         const id = `chapter${index + 1}`;
         manifestItems += `<item id="${id}" href="${id}.html" media-type="application/xhtml+xml"/>\n`;
         spineItems += `<itemref idref="${id}"/>\n`;
         tocNavPoints += `<navPoint id="navpoint-${index + 1}" playOrder="${index + 1}"><navLabel><text>${ch.title}</text></navLabel><content src="${id}.html"/></navPoint>\n`;
         
-        const cleanedContent = cleanHtmlForEpub(chapterContent);
+        const cleanedContent = cleanHtmlForEpub(processedContent);
         const chapterHtml = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>${ch.title}</title><style>body { font-family: sans-serif; padding: 10px; } h1 { text-align: center; } img { max-width: 100%; height: auto; display: block; margin: 10px auto; }</style></head><body><h1>${ch.title}</h1><div>${cleanedContent}</div></body></html>`;
         oebps.file(`${id}.html`, chapterHtml);
     }
@@ -286,3 +320,6 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
         link.click();
     });
 });
+
+// Run Initial Setup
+renderChapterList();
