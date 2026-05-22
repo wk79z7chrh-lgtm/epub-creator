@@ -1,7 +1,7 @@
 // Configure PDF.js Worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-// Initialize Quill Editor with Simple Toolbar
+// Initialize Quill Editor with Simple Toolbar and Multi-Image support
 const quill = new Quill('#editor-container', {
     theme: 'snow',
     placeholder: 'Write chapter content here...',
@@ -14,6 +14,33 @@ const quill = new Quill('#editor-container', {
             ['clean']
         ]
     }
+});
+
+// Intercept Quill's image button to allow multiple file selection
+const toolbar = quill.getModule('toolbar');
+toolbar.addHandler('image', () => {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.setAttribute('multiple', 'multiple'); // Enable multiple image selection
+    input.click();
+
+    input.onchange = async () => {
+        const files = input.files;
+        if (files.length > 0) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                try {
+                    const base64Str = await fileToBase64Complete(file);
+                    const range = quill.getSelection(true);
+                    quill.insertEmbed(range.index, 'image', base64Str);
+                    quill.setSelection(range.index + 1);
+                } catch (err) {
+                    console.error("Image upload error: ", err);
+                }
+            }
+        }
+    };
 });
 
 // App State (Load safely from LocalStorage)
@@ -29,7 +56,7 @@ try {
     console.error("Error loading from localStorage", e);
 }
 
-// Night Mode Toggle
+// Setup Elements and Night Mode Toggle
 document.addEventListener('DOMContentLoaded', () => {
     const modeToggle = document.getElementById('modeToggle');
     if (modeToggle) {
@@ -43,16 +70,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // Create and Append "All Clear" Button dynamically
+    setupAllClearButton();
+    
     // Initial Load Setup
     loadChapterState();
 });
 
-// Save to LocalStorage safely (Handles large image storage strings)
+// Dynamic UI Injection for "All Clear" Button
+function setupAllClearButton() {
+    const chapterTitleInput = document.getElementById('chapterTitle');
+    if (chapterTitleInput && !document.getElementById('allClearBtn')) {
+        const clearBtn = document.createElement('button');
+        clearBtn.id = 'allClearBtn';
+        clearBtn.innerHTML = '🧹 စာသားအားလုံးဖျက်ရန် (Clear All)';
+        clearBtn.className = 'btn-danger';
+        clearBtn.style.marginTop = '8px';
+        clearBtn.style.marginBottom = '8px';
+        clearBtn.style.padding = '8px 12px';
+        clearBtn.style.width = '100%';
+        clearBtn.style.fontWeight = 'bold';
+        clearBtn.style.borderRadius = '6px';
+        clearBtn.style.cursor = 'pointer';
+        
+        clearBtn.onclick = () => {
+            if (confirm('ယခု Chapter ထဲက စာသားနဲ့ ပုံအားလုံးကို အပြီးဖျက်ထုတ်မှာ သေချာပါသလား။')) {
+                quill.setText(''); // Instantly clear editor text
+                chapters[currentChapterIndex].content = '';
+                saveToLocalStorage();
+            }
+        };
+        // Insert right after the chapter title input field
+        chapterTitleInput.parentNode.insertBefore(clearBtn, chapterTitleInput.nextSibling);
+    }
+}
+
+// Optimization: Strips heavy base64 strings before saving text to LocalStorage to prevent 5MB crashes
+function getCleanedChaptersForStorage() {
+    return chapters.map(ch => {
+        // Strip out base64 image data just for LocalStorage, keeps the text and image placements safe
+        let strippedContent = ch.content.replace(/<img[^>]+src="data:image\/[^;]+;base64,[^"]+"[^>]*>/g, '<img src="" alt="Auto-saved Image Place" />');
+        return {
+            title: ch.title,
+            content: strippedContent
+        };
+    });
+}
+
+// Save text data safely to LocalStorage without heavy image payload
 function saveToLocalStorage() {
     try {
-        localStorage.setItem('epub_creator_chapters', JSON.stringify(chapters));
+        const optimizedData = getCleanedChaptersForStorage();
+        localStorage.setItem('epub_creator_chapters', JSON.stringify(optimizedData));
     } catch (e) {
-        console.warn("Storage limit reached or failed to save images directly:", e);
+        console.warn("LocalStorage save skipped to protect memory:", e);
     }
 }
 
@@ -62,7 +133,6 @@ function cleanHtmlForEpub(htmlContent) {
     let cleaned = htmlContent.replace(/<br\s*>/gi, '<br />');
     cleaned = cleaned.replace(/<img([^>]*)\s*>/gi, (match, p1) => {
         if (!p1.trim().endsWith('/')) {
-            // Remove unclosed trailing brackets and fix it
             return `<img ${p1.replace(/\/$/, '').trim()} />`;
         }
         return match;
@@ -110,7 +180,7 @@ function saveCurrentChapterState() {
     }
 }
 
-// Load Chapter on App Startup
+// Load Chapter Data
 function loadChapterState() {
     if (chapters[currentChapterIndex]) {
         const titleInput = document.getElementById('chapterTitle');
@@ -141,7 +211,7 @@ function deleteChapter(index) {
     }
 }
 
-// Listen for typing changes in Quill Editor to auto-save instantly
+// Listen for typing/image insert changes in Quill Editor
 quill.on('text-change', () => {
     if (chapters[currentChapterIndex]) {
         chapters[currentChapterIndex].content = quill.root.innerHTML;
@@ -211,6 +281,14 @@ document.getElementById('extractPdfBtn').addEventListener('click', async () => {
 });
 
 // Helper for Image Base64 conversion
+function fileToBase64Complete(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+}
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -220,7 +298,7 @@ function fileToBase64(file) {
     });
 }
 
-// Generate and Download ePub (Robust Image Parser Included)
+// Generate and Download ePub (Robust Multi-Image Packager)
 document.getElementById('downloadEpub').addEventListener('click', async () => {
     saveCurrentChapterState();
     
@@ -245,12 +323,10 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
     for (let index = 0; index < chapters.length; index++) {
         const ch = chapters[index];
         
-        // Create a temporary element to parse HTML correctly without complex Regex errors
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = ch.content;
         const images = tempDiv.getElementsByTagName('img');
         
-        // Process each image inside the chapter html
         for (let i = 0; i < images.length; i++) {
             const img = images[i];
             const src = img.getAttribute('src');
@@ -258,22 +334,18 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
             if (src && src.startsWith('data:image/')) {
                 try {
                     const parts = src.split(';base64,');
-                    const mimeType = parts[0].split(':')[1]; // e.g. "image/png"
-                    const ext = mimeType.split('/')[1] || 'jpeg'; // e.g. "png"
+                    const mimeType = parts[0].split(':')[1];
+                    const ext = mimeType.split('/')[1] || 'jpeg';
                     const base64Data = parts[1];
                     
                     const imgFileName = `img_${imageCounter}.${ext}`;
                     const imgId = `inline_img_${imageCounter}`;
                     
-                    // Save image file to OEBPS folder
                     oebps.file(imgFileName, base64Data, { base64: true });
-                    
-                    // Add to manifest items
                     imageManifestItems += `<item id="${imgId}" href="${imgFileName}" media-type="${mimeType}"/>\n`;
                     
-                    // Replace the src attribute with the real internal file name
                     img.setAttribute('src', imgFileName);
-                    img.removeAttribute('alt'); // clean unneeded attrs for standard compliance
+                    img.removeAttribute('alt');
                     
                     imageCounter++;
                 } catch (imgErr) {
