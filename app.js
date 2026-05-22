@@ -1,7 +1,7 @@
 // Configure PDF.js Worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-// Initialize Quill Editor with Simple Toolbar (Supports Images)
+// Initialize Quill Editor with Simple Toolbar
 const quill = new Quill('#editor-container', {
     theme: 'snow',
     placeholder: 'Write chapter content here...',
@@ -16,8 +16,8 @@ const quill = new Quill('#editor-container', {
     }
 });
 
-// App State
-let chapters = [{ title: 'Chapter 1', content: '' }];
+// App State (Load from LocalStorage if exists, otherwise load default)
+let chapters = JSON.parse(localStorage.getItem('epub_creator_chapters')) || [{ title: 'Chapter 1', content: '' }];
 let currentChapterIndex = 0;
 
 // Night Mode Toggle
@@ -33,7 +33,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    
+    // Initial Load Setup
+    loadChapterState();
 });
+
+// Save all chapters data to LocalStorage automatically
+function saveToLocalStorage() {
+    localStorage.setItem('epub_creator_chapters', JSON.stringify(chapters));
+}
 
 // Clean and Validate HTML Content for XHTML/EPUB compatibility
 function cleanHtmlForEpub(htmlContent) {
@@ -84,7 +92,17 @@ function saveCurrentChapterState() {
     if (titleInput && chapters[currentChapterIndex]) {
         chapters[currentChapterIndex].title = titleInput.value.trim() || `Chapter ${currentChapterIndex + 1}`;
         chapters[currentChapterIndex].content = quill.root.innerHTML;
+        saveToLocalStorage(); // Auto save to browser storage
     }
+}
+
+// Load Chapter on App Startup
+function loadChapterState() {
+    if (chapters[currentChapterIndex]) {
+        document.getElementById('chapterTitle').value = chapters[currentChapterIndex].title;
+        quill.root.innerHTML = chapters[currentChapterIndex].content;
+    }
+    renderChapterList();
 }
 
 function switchChapter(index) {
@@ -101,11 +119,20 @@ function deleteChapter(index) {
         if (currentChapterIndex >= chapters.length) {
             currentChapterIndex = chapters.length - 1;
         }
+        saveToLocalStorage();
         document.getElementById('chapterTitle').value = chapters[currentChapterIndex].title;
         quill.root.innerHTML = chapters[currentChapterIndex].content;
         renderChapterList();
     }
 }
+
+// Listen for typing changes in Quill Editor to auto-save instantly
+quill.on('text-change', () => {
+    if (chapters[currentChapterIndex]) {
+        chapters[currentChapterIndex].content = quill.root.innerHTML;
+        saveToLocalStorage();
+    }
+});
 
 // Chapter Event Listeners
 document.getElementById('addChapterBtn').addEventListener('click', () => {
@@ -114,12 +141,14 @@ document.getElementById('addChapterBtn').addEventListener('click', () => {
     currentChapterIndex = chapters.length - 1;
     document.getElementById('chapterTitle').value = chapters[currentChapterIndex].title;
     quill.root.innerHTML = '';
+    saveToLocalStorage();
     renderChapterList();
 });
 
 document.getElementById('chapterTitle').addEventListener('input', (e) => {
     if (chapters[currentChapterIndex]) {
         chapters[currentChapterIndex].title = e.target.value;
+        saveToLocalStorage();
         renderChapterList();
     }
 });
@@ -154,6 +183,7 @@ document.getElementById('extractPdfBtn').addEventListener('click', async () => {
             currentChapterIndex = chapters.length - 1;
             document.getElementById('chapterTitle').value = chapters[currentChapterIndex].title;
             quill.root.innerHTML = chapters[currentChapterIndex].content;
+            saveToLocalStorage();
             renderChapterList();
             
             status.textContent = 'Text extracted successfully! Check below.';
@@ -197,28 +227,22 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
     const oebps = zip.folder("OEBPS");
     let imageCounter = 1;
 
-    // Process each chapter and extract inline images
     for (let index = 0; index < chapters.length; index++) {
         const ch = chapters[index];
         let chapterContent = ch.content;
         
-        // Find all base64 images inside <img> tags
         const imgRegex = /<img[^>]+src="data:image\/([^;]+);base64,([^"]+)"[^>]*>/g;
         let match;
         
         while ((match = imgRegex.exec(ch.content)) !== null) {
-            const ext = match[1]; // e.g., png, jpeg
+            const ext = match[1];
             const base64Data = match[2];
             const imgFileName = `img_${imageCounter}.${ext}`;
             const imgId = `inline_img_${imageCounter}`;
             
-            // Save image file to OEBPS folder
             oebps.file(imgFileName, base64Data, { base64: true });
-            
-            // Add to manifest
             imageManifestItems += `<item id="${imgId}" href="${imgFileName}" media-type="image/${ext}"/>\n`;
             
-            // Replace base64 data string with the relative file path for EPUB compliance
             const replacementRegex = new RegExp(`<img[^>]+src="data:image\/${ext};base64,${base64Data.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}"[^>]*>`, 'g');
             chapterContent = chapterContent.replace(replacementRegex, `<img src="${imgFileName}" alt="Image" />`);
             
@@ -230,7 +254,6 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
         spineItems += `<itemref idref="${id}"/>\n`;
         tocNavPoints += `<navPoint id="navpoint-${index + 1}" playOrder="${index + 1}"><navLabel><text>${ch.title}</text></navLabel><content src="${id}.html"/></navPoint>\n`;
         
-        // Clean and save the processed chapter HTML
         const cleanedContent = cleanHtmlForEpub(chapterContent);
         const chapterHtml = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>${ch.title}</title><style>body { font-family: sans-serif; padding: 10px; } h1 { text-align: center; } img { max-width: 100%; height: auto; display: block; margin: 10px auto; }</style></head><body><h1>${ch.title}</h1><div>${cleanedContent}</div></body></html>`;
         oebps.file(`${id}.html`, chapterHtml);
@@ -263,6 +286,3 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
         link.click();
     });
 });
-
-// Run Initial Setup
-renderChapterList();
