@@ -20,15 +20,15 @@
             --sidebar-width: 260px;
         }
 
-        /* မျက်စိအေးစေမည့် Deep Navy Blue Theme (အနီ၊ အဝါ၊ ခရမ်း ခလုတ်များ လုံးဝ ဖယ်ထုတ်ထားပါသည်) */
+        /* Deep Navy Blue Theme (စာစီစာရိုက်ကွက်ကို လင်းလင်းရှင်းရှင်း ဖြစ်အောင် ညှိထားပါသည်) */
         body.dark-mode {
-            --bg-color: #1e2530;        /* ပထမပုံထဲကအတိုင်း မျက်စိအေးစေမည့် ပြာမှိုင်းမှိုင်း နောက်ခံ */
-            --container-bg: #252e3c;    /* စာရေးသည့် သေတ္တာကွက်များအတွက် တိမ်ပြာရင့်ရောင် */
-            --text-color: #cfd8dc;      /* မီးခိုးနုရောင်/အဖြူရောင် စာသားစစ်စစ် */
-            --border-color: #34495e;    /* အကန့်လိုင်းလေးများ အရောင် */
-            --primary-color: #51a4fa;    /* အဓိက သုံးမည့် လှပသော အပြာနုရောင် ခလုတ် */
-            --secondary-color: #2c3e50;  /* Backup အတွက် သုံးမည့် ပြာမှိုင်းမှိုင်း ခလုတ်ရောင် */
-            --success-color: #52be80;    /* PDF နှင့် ePub ထုတ်ရန် ပုံထဲကအတိုင်း စိမ်းစိုစိုရောင် ခလုတ် */
+            --bg-color: #1e2530;        
+            --container-bg: #252e3c;    
+            --text-color: #cfd8dc;      
+            --border-color: #34495e;    
+            --primary-color: #51a4fa;    
+            --secondary-color: #3a4759;  
+            --success-color: #52be80;    
         }
 
         * {
@@ -57,7 +57,7 @@
         }
 
         header h3 {
-            color: #2ecc71; /* Web ePub Creator Pro ပုံစံအတိုင်း စိမ်းစိမ်းလေး ပြင်ထားပေးပါတယ် */
+            color: #2ecc71; 
         }
 
         .main-layout {
@@ -114,12 +114,12 @@
             padding: 10px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            background-color: #1a1e25; /* စာရိုက်ကွက်နောက်ခံကိုလည်း အမှောင်ရောင်ပြောင်းထားပါတယ် */
+            background-color: #1a1e25; 
             color: var(--text-color);
             font-size: 1em;
         }
 
-        /* Button Styling - အနီ၊ အဝါ၊ ခရမ်းများ ဖယ်ရှားပြီး မျက်စိအေးအောင် ညှိထားပါသည် */
+        /* Button Styling */
         button, .file-input-label {
             display: inline-block;
             width: 100%;
@@ -139,12 +139,11 @@
             opacity: 0.9;
         }
 
-        /* Theme နှင့် ကိုက်ညီသော ခလုတ်အရောင်အသစ်များ */
         .btn-primary { background-color: var(--primary-color); }
-        .btn-secondary { background-color: #3a4759; color: #cfd8dc; } /* ပြာမှိုင်းမှိုင်း */
-        .btn-success { background-color: var(--success-color); }      /* စိမ်းစိုစို */
-        .btn-danger { background-color: #2c3e50; color: #e74c3c; border: 1px solid #e74c3c; } /* Clear ခလုတ်ကို အနီရောင်အကြီးကြီး မသုံးတော့ဘဲ စာလုံးနီရောင်ပဲ သုံးထားပါတယ် */
-        .btn-warning { background-color: #2d384c; color: #51a4fa; border: 1px solid #51a4fa; } /* အဝါရောင် ဖယ်ပြီး အပြာလိုင်းလေး သုံးထားပါတယ် */
+        .btn-secondary { background-color: #3a4759; color: #cfd8dc; } 
+        .btn-success { background-color: var(--success-color); }      
+        .btn-danger { background-color: #2c3e50; color: #e74c3c; border: 1px solid #e74c3c; } 
+        .btn-warning { background-color: #2d384c; color: #51a4fa; border: 1px solid #51a4fa; } 
 
         /* Backup border layout */
         .backup-section {
@@ -198,7 +197,9 @@
             color: #e74c3c;
         }
 
-        /* Editor Customizing for Dark Mode */
+        /* -----------------------------------------------------------
+           EDITOR RE-STYLING (စာစီစာရိုက်ကွက်အတွက် အလင်းပြင်ဆင်ချက်)
+        -------------------------------------------------------------- */
         #editor-container {
             height: 400px;
             background-color: #ffffff;
@@ -207,14 +208,27 @@
             border-bottom-right-radius: 6px;
         }
 
+        /* 🌙 Dark Mode ပြောင်းထားချိန် စာရိုက်ကွက်အတွင်း အလင်းစနစ် ညှိချက် */
         body.dark-mode #editor-container {
-            background-color: #252e3c !important;
-            color: #cfd8dc !important;
+            background-color: #1e2530 !important; /* သင့်ပုံထဲကအတိုင်း ပိုမိုရှင်းလင်းသော နောက်ခံ */
             border: 1px solid var(--border-color);
         }
 
+        /* စာရိုက်ကွက်ထဲက စာလုံးများကို လင်းလင်းထင်ထင် ရှင်းရှင်းလင်းလင်း ဖြစ်စေရန် အဖြူရောင် ပြောင်းပေးထားပါသည် */
+        body.dark-mode .ql-editor {
+            color: #ffffff !important; 
+            font-size: 1.05em;
+            line-height: 1.6;
+        }
+
+        /* Placeholder (စာမရိုက်ခင် ပြနေမည့် စာသားမှိန်) ကာလာ */
+        body.dark-mode .ql-editor.ql-blank::before {
+            color: #7f8c8d !important;
+            font-style: normal;
+        }
+
         body.dark-mode .ql-toolbar {
-            background-color: #1e2530 !important;
+            background-color: #252e3c !important;
             border: 1px solid var(--border-color);
         }
 
