@@ -53,6 +53,10 @@ try {
     if (savedChapters) {
         chapters = JSON.parse(savedChapters);
     }
+    const savedTitle = localStorage.getItem('epub_creator_book_title');
+    if (savedTitle) document.getElementById('bookTitle').value = savedTitle;
+    const savedAuthor = localStorage.getItem('epub_creator_book_author');
+    if (savedAuthor) document.getElementById('bookAuthor').value = savedAuthor;
 } catch (e) {
     console.error("Error loading from localStorage", e);
 }
@@ -70,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     setupAllClearButton();
+    setupBackupSystemEvents(); // Setup method B backup system
     loadChapterState();
 });
 
@@ -78,7 +83,7 @@ function setupAllClearButton() {
     if (chapterTitleInput && !document.getElementById('allClearBtn')) {
         const clearBtn = document.createElement('button');
         clearBtn.id = 'allClearBtn';
-        clearBtn.innerHTML = '🧹 စာသားအားလုံးဖျက်ရန် (Clear All)';
+        clearBtn.innerHTML = '🧹 စာသားအားလုံးဖျက်ရန် (Clear All Content)';
         clearBtn.className = 'btn-danger';
         clearBtn.style.marginTop = '8px';
         clearBtn.style.marginBottom = '8px';
@@ -99,10 +104,77 @@ function setupAllClearButton() {
     }
 }
 
+// METHOD B: MULTI-BOOK BACKUP & LOGIC MANAGEMENT
+function setupBackupSystemEvents() {
+    // 1. Download Backup as JSON file
+    document.getElementById('backupBookBtn').onclick = () => {
+        saveCurrentChapterState();
+        const bookData = {
+            title: document.getElementById('bookTitle').value.trim(),
+            author: document.getElementById('bookAuthor').value.trim(),
+            chapters: chapters
+        };
+        const blob = new Blob([JSON.stringify(bookData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const filename = (bookData.title || 'book_backup').replace(/\s+/g, '_') + '_backup.json';
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    // 2. Load Backup from file
+    document.getElementById('loadBackupFile').onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const parsed = JSON.parse(evt.target.result);
+                if (parsed.chapters && Array.isArray(parsed.chapters)) {
+                    if (confirm('ဒီ Backup ဖိုင်ကို တင်သွင်းလိုက်ရင် လက်ရှိ App ပေါ်မှာ ပြသနေတဲ့စာတွေ အကုန်လုံး အစားထိုးလဲလှယ်သွားပါမယ်။ တင်သွင်းမှာ သေချာပါသလား။')) {
+                        chapters = parsed.chapters;
+                        document.getElementById('bookTitle').value = parsed.title || 'Untitled Book';
+                        document.getElementById('bookAuthor').value = parsed.author || 'Unknown Author';
+                        currentChapterIndex = 0;
+                        saveToLocalStorage();
+                        loadChapterState();
+                        alert('Backup ဖိုင်ကို အောင်မြင်စွာ ပြန်လည်တင်သွင်းပြီးပါပြီဗျာ။');
+                    }
+                } else {
+                    alert('မှားယွင်းနေသော ဖိုင်ပုံစံဖြစ်နေပါသည်။ စာအုပ် Backup JSON ဖိုင်သာ ဖြစ်ရပါမည်။');
+                }
+            } catch(err) {
+                alert('ဖိုင်ကို ဖတ်မရပါ။ ' + err.message);
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = ''; // clear input cache
+    };
+
+    // 3. Reset App completely for a brand new book
+    document.getElementById('resetAppBtn').onclick = () => {
+        if (confirm('⚠️ သတိပေးချက်: လက်ရှိစာအုပ်ကို Backup ဖိုင်အရင်မသိမ်းထားရသေးရင် စာတွေအကုန် ပျက်သွားနိုင်ပါတယ်။ စာအုပ်အသစ်စရေးဖို့ App တစ်ခုလုံးကို Reset ချမှာ သေချာပါသလား။')) {
+            chapters = [{ title: 'Chapter 1', content: '' }];
+            currentChapterIndex = 0;
+            document.getElementById('bookTitle').value = 'Book Title New';
+            document.getElementById('bookAuthor').value = 'Author Name';
+            document.getElementById('coverImage').value = '';
+            quill.setText('');
+            saveToLocalStorage();
+            loadChapterState();
+            alert('App ကို Reset ချပေးပြီးပါပြီ။ စာအုပ်အသစ်တစ်အုပ်ကို အစကနေ စတင်ရေးသားနိုင်ပါပြီဗျာ။');
+        }
+    };
+}
+
 // Save to local memory safely
 function saveToLocalStorage() {
     try {
         localStorage.setItem('epub_creator_chapters', JSON.stringify(chapters));
+        localStorage.setItem('epub_creator_book_title', document.getElementById('bookTitle').value);
+        localStorage.setItem('epub_creator_book_author', document.getElementById('bookAuthor').value);
     } catch (e) {
         console.warn("Storage limit note: Data remains safe in current session.");
     }
@@ -214,6 +286,10 @@ document.getElementById('chapterTitle').addEventListener('input', (e) => {
     }
 });
 
+// Sync Title and Author inputs with local storage real-time
+document.getElementById('bookTitle').addEventListener('input', () => saveToLocalStorage());
+document.getElementById('bookAuthor').addEventListener('input', () => saveToLocalStorage());
+
 document.getElementById('extractPdfBtn').addEventListener('click', async () => {
     const pdfFile = document.getElementById('pdfFile').files[0];
     const status = document.getElementById('pdfStatus');
@@ -266,7 +342,7 @@ function fileToBase64(file) {
     });
 }
 
-// Generate and Download ePub (COMPLETE REMOVAL OF ALL NUMERICAL FILENAMES & ID GLITCHES)
+// Generate and Download ePub
 document.getElementById('downloadEpub').addEventListener('click', async () => {
     saveCurrentChapterState();
     
@@ -288,7 +364,6 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
     const oebps = zip.folder("OEBPS");
     let imageCounter = 1;
 
-    // Helper to generate alphabetical ID chunks instead of numbers (e.g., chapter_a, chapter_b)
     function getAlphabetId(num) {
         let ret = '';
         while (num >= 0) {
@@ -334,8 +409,6 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
         }
         
         const processedContent = tempDiv.innerHTML;
-        
-        // ULTIMATE FIX: Alphabetical IDs and Filenames to prevent ePub Reader Apps from auto-printing header numbers
         const alphaChapterCode = getAlphabetId(index);
         const cleanFileId = `chapter_section_doc_${alphaChapterCode}`;
         
@@ -344,7 +417,7 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
         tocNavPoints += `<navPoint id="nav-${cleanFileId}" playOrder="${index + 1}"><navLabel><text>${ch.title}</text></navLabel><content src="${cleanFileId}.html"/></navPoint>\n`;
         
         const cleanedContent = cleanHtmlForEpub(processedContent);
-        const chapterHtml = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>${ch.title}</title><style>body { font-family: sans-serif; padding: 10px; } h1 { text-align: center; } img { max-width: 100%; height: auto; display: block; margin: 10px auto; }</style></head><body><h1>${ch.title}</h1><div>${cleanedContent}</div></body></html>`;
+        const chapterHtml = `<?xml version="1.0" encoding="UTF-8"?><html xmlns="http://www.w3.org/1999/xhtml"><head><title>${ch.title}</title><style>body { font-family: sans-serif; padding: 10px; } h1 { text-align: center; } img { max-width: 100%; height: auto; display: block; margin: 10px auto; }</style></head><body><h1>${ch.title}</h1><div>${cleanedContent}</div></body></html>`;
         oebps.file(`${cleanFileId}.html`, chapterHtml);
     }
     
