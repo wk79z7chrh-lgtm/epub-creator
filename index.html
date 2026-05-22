@@ -20,7 +20,7 @@
             --sidebar-width: 260px;
         }
 
-        /* Deep Navy Blue Theme (စာစီစာရိုက်ကွက်ကို လင်းလင်းရှင်းရှင်း ဖြစ်အောင် ညှိထားပါသည်) */
+        /* မျက်စိအေးစေမည့် Deep Navy Blue Theme */
         body.dark-mode {
             --bg-color: #1e2530;        
             --container-bg: #252e3c;    
@@ -198,7 +198,7 @@
         }
 
         /* -----------------------------------------------------------
-           EDITOR RE-STYLING (စာစီစာရိုက်ကွက်အတွက် အလင်းပြင်ဆင်ချက်)
+           💥 EDITOR FORCE FIX (စာလုံးဖြူရန် အတင်းအကျပ် ညှိနှိုင်းချက်)
         -------------------------------------------------------------- */
         #editor-container {
             height: 400px;
@@ -208,22 +208,23 @@
             border-bottom-right-radius: 6px;
         }
 
-        /* 🌙 Dark Mode ပြောင်းထားချိန် စာရိုက်ကွက်အတွင်း အလင်းစနစ် ညှိချက် */
+        /* 🌙 Dark Mode မှာ စာရိုက်ကွက်အတွင်းရှိ စာလုံးအားလုံးကို အဖြူရောင် ဖြစ်အောင် အတင်း ပြောင်းလဲခိုင်းခြင်း */
         body.dark-mode #editor-container {
-            background-color: #1e2530 !important; /* သင့်ပုံထဲကအတိုင်း ပိုမိုရှင်းလင်းသော နောက်ခံ */
+            background-color: #2d384c !important; /* စာစီရတာ ရှင်းလင်းစေမည့် ပိုလင်းသော နောက်ခံ */
             border: 1px solid var(--border-color);
         }
 
-        /* စာရိုက်ကွက်ထဲက စာလုံးများကို လင်းလင်းထင်ထင် ရှင်းရှင်းလင်းလင်း ဖြစ်စေရန် အဖြူရောင် ပြောင်းပေးထားပါသည် */
-        body.dark-mode .ql-editor {
+        /* ⚠️ Quill Editor အတွင်းရှိ p, span, စာသားအားလုံးကို အဖြူရောင် ဖြစ်အောင် သေချာပေါက် Override လုပ်ပါသည် */
+        body.dark-mode .ql-editor,
+        body.dark-mode .ql-editor * {
             color: #ffffff !important; 
             font-size: 1.05em;
             line-height: 1.6;
         }
 
-        /* Placeholder (စာမရိုက်ခင် ပြနေမည့် စာသားမှိန်) ကာလာ */
+        /* Placeholder စာလုံးမှိန် အရောင် */
         body.dark-mode .ql-editor.ql-blank::before {
-            color: #7f8c8d !important;
+            color: #95a5a6 !important;
             font-style: normal;
         }
 
