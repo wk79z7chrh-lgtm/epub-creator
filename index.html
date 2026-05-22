@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced ePub Creator with Multi-Book Backup</title>
+    <!-- Quill Rich Text Editor Stylesheet -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
         :root {
@@ -11,23 +12,23 @@
             --container-bg: #ffffff;
             --text-color: #333333;
             --border-color: #cccccc;
-            --primary-color: #4a90e2;
-            --secondary-color: #9b59b6;
+            --primary-color: #34495e;
+            --secondary-color: #2c3e50;
             --success-color: #2ecc71;
             --danger-color: #e74c3c;
             --warning-color: #f39c12;
             --sidebar-width: 260px;
         }
 
-        /* ပုံထဲကအတိုင်း အတိအကျ ညှိပေးထားသော Deep Navy Blue မျက်စိအေး ကာလာစနစ် */
+        /* မျက်စိအေးစေမည့် Deep Navy Blue Theme (အနီ၊ အဝါ၊ ခရမ်း ခလုတ်များ လုံးဝ ဖယ်ထုတ်ထားပါသည်) */
         body.dark-mode {
-            --bg-color: #1a1e29;        /* ပုံထဲကအတိုင်း ပြာမှိုင်းမှိုင်း အမှောင်ရောင် နောက်ခံ */
-            --container-bg: #232a38;    /* အတွင်း Box ကွက်များအတွက် တိမ်ပြာရင့်ရောင် */
-            --text-color: #b2becd;      /* စာသားများ ဖတ်ရသက်သာစေမည့် မီးခိုးပြာနုရောင် */
-            --border-color: #2d384c;    /* အကန့်လိုင်းလေးများ အရောင် */
-            --primary-color: #51a4fa;    /* ခလုတ်အပြာနုရောင် */
-            --secondary-color: #8e44ad;
-            --success-color: #52be80;    /* ပုံထဲကအတိုင်း လှပသော စိမ်းစိမ်းစိုစို ခလုတ်ရောင် */
+            --bg-color: #1e2530;        /* ပထမပုံထဲကအတိုင်း မျက်စိအေးစေမည့် ပြာမှိုင်းမှိုင်း နောက်ခံ */
+            --container-bg: #252e3c;    /* စာရေးသည့် သေတ္တာကွက်များအတွက် တိမ်ပြာရင့်ရောင် */
+            --text-color: #cfd8dc;      /* မီးခိုးနုရောင်/အဖြူရောင် စာသားစစ်စစ် */
+            --border-color: #34495e;    /* အကန့်လိုင်းလေးများ အရောင် */
+            --primary-color: #51a4fa;    /* အဓိက သုံးမည့် လှပသော အပြာနုရောင် ခလုတ် */
+            --secondary-color: #2c3e50;  /* Backup အတွက် သုံးမည့် ပြာမှိုင်းမှိုင်း ခလုတ်ရောင် */
+            --success-color: #52be80;    /* PDF နှင့် ePub ထုတ်ရန် ပုံထဲကအတိုင်း စိမ်းစိုစိုရောင် ခလုတ် */
         }
 
         * {
@@ -53,6 +54,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        header h3 {
+            color: #2ecc71; /* Web ePub Creator Pro ပုံစံအတိုင်း စိမ်းစိမ်းလေး ပြင်ထားပေးပါတယ် */
         }
 
         .main-layout {
@@ -109,12 +114,12 @@
             padding: 10px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            background-color: var(--container-bg);
+            background-color: #1a1e25; /* စာရိုက်ကွက်နောက်ခံကိုလည်း အမှောင်ရောင်ပြောင်းထားပါတယ် */
             color: var(--text-color);
             font-size: 1em;
         }
 
-        /* Button Styling */
+        /* Button Styling - အနီ၊ အဝါ၊ ခရမ်းများ ဖယ်ရှားပြီး မျက်စိအေးအောင် ညှိထားပါသည် */
         button, .file-input-label {
             display: inline-block;
             width: 100%;
@@ -134,23 +139,25 @@
             opacity: 0.9;
         }
 
-        .btn-secondary { background-color: var(--secondary-color); }
-        .btn-success { background-color: var(--success-color); }
-        .btn-danger { background-color: var(--danger-color); }
-        .btn-warning { background-color: var(--warning-color); }
+        /* Theme နှင့် ကိုက်ညီသော ခလုတ်အရောင်အသစ်များ */
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-secondary { background-color: #3a4759; color: #cfd8dc; } /* ပြာမှိုင်းမှိုင်း */
+        .btn-success { background-color: var(--success-color); }      /* စိမ်းစိုစို */
+        .btn-danger { background-color: #2c3e50; color: #e74c3c; border: 1px solid #e74c3c; } /* Clear ခလုတ်ကို အနီရောင်အကြီးကြီး မသုံးတော့ဘဲ စာလုံးနီရောင်ပဲ သုံးထားပါတယ် */
+        .btn-warning { background-color: #2d384c; color: #51a4fa; border: 1px solid #51a4fa; } /* အဝါရောင် ဖယ်ပြီး အပြာလိုင်းလေး သုံးထားပါတယ် */
 
-        /* Backup system container layout */
+        /* Backup border layout */
         .backup-section {
-            border: 2px dashed var(--primary-color);
+            border: 1px solid var(--border-color);
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 15px;
-            background-color: rgba(81, 164, 250, 0.05);
+            background-color: rgba(81, 164, 250, 0.02);
         }
         .backup-title {
             font-size: 0.85em;
             font-weight: bold;
-            color: var(--primary-color);
+            color: var(--text-color);
             margin-bottom: 8px;
             text-align: center;
             text-transform: uppercase;
@@ -187,6 +194,8 @@
             width: auto;
             padding: 2px 6px;
             font-size: 0.8em;
+            background-color: transparent;
+            color: #e74c3c;
         }
 
         /* Editor Customizing for Dark Mode */
@@ -199,26 +208,26 @@
         }
 
         body.dark-mode #editor-container {
-            background-color: #232a38 !important;
-            color: #b2becd !important;
+            background-color: #252e3c !important;
+            color: #cfd8dc !important;
             border: 1px solid var(--border-color);
         }
 
         body.dark-mode .ql-toolbar {
-            background-color: #1a1e29 !important;
+            background-color: #1e2530 !important;
             border: 1px solid var(--border-color);
         }
 
         body.dark-mode .ql-snow .ql-stroke {
-            stroke: #b2becd !important;
+            stroke: #cfd8dc !important;
         }
 
         body.dark-mode .ql-snow .ql-fill {
-            fill: #b2becd !important;
+            fill: #cfd8dc !important;
         }
 
         body.dark-mode .ql-snow .ql-picker {
-            color: #b2becd !important;
+            color: #cfd8dc !important;
         }
 
         .ql-toolbar {
@@ -230,7 +239,7 @@
         #pdfStatus {
             font-size: 0.85em;
             margin-top: 5px;
-            color: var(--primary-color);
+            color: var(--success-color);
             font-weight: bold;
         }
 
@@ -249,18 +258,20 @@
 <body>
 
     <header>
-        <h3 style="margin:0;">📚 Advanced ePub Book Builder</h3>
-        <button id="modeToggle" style="width:auto; padding:6px 12px; font-size:0.85em;">🌙 Night Mode</button>
+        <h3 style="margin:0;">🟢 Web ePub Creator Pro</h3>
+        <button id="modeToggle" style="width:auto; padding:6px 12px; font-size:0.85em; background-color: #252e3c; border: 1px solid #34495e;">☀️ Light Mode</button>
     </header>
 
     <div class="main-layout">
+        <!-- Left Sidebar Navigation Control -->
         <div class="sidebar">
             
+            <!-- EXCLUSIVE MULTI-BOOK BACKUP SYSTEM -->
             <div class="backup-section">
                 <div class="backup-title">💾 စာအုပ် Backup စီမံခန့်ခွဲမှု</div>
                 <button id="backupBookBtn" class="btn-secondary" style="font-size:0.85em; margin-bottom:6px; padding:8px;">📥 လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းမည် (Backup)</button>
                 
-                <label class="file-input-label btn-warning" style="font-size:0.85em; margin-bottom:6px; padding:8px; color:white;">
+                <label class="file-input-label btn-warning" style="font-size:0.85em; margin-bottom:6px; padding:8px;">
                     📤 စာအုပ်ဟောင်း ပြန်တင်မည် (Load Backup)
                     <input type="file" id="loadBackupFile" accept=".json" style="display:none;">
                 </label>
@@ -289,14 +300,15 @@
 
             <hr style="border:0; border-top:1px solid var(--border-color); margin:5px 0;">
 
-            <div class="form-group" style="background:rgba(81, 164, 250, 0.1); padding:10px; border-radius:6px; border:1px solid var(--primary-color);">
-                <label style="color:var(--primary-color);">📄 PDF မှ စာသားထုတ်ယူရန်</label>
+            <div class="form-group" style="background:rgba(82, 190, 128, 0.05); padding:10px; border-radius:6px; border:1px solid var(--success-color);">
+                <label style="color:var(--success-color);">📄 PDF မှ စာသားထုတ်ယူရန် (Optional)</label>
                 <input type="file" id="pdfFile" accept=".pdf">
-                <button id="extractPdfBtn" style="margin-top:8px; padding:6px; font-size:0.9em;">Import PDF Text</button>
+                <button id="extractPdfBtn" class="btn-success" style="margin-top:8px; padding:6px; font-size:0.9em;">⚡ PDF မှ စာသားများကို ဆွဲထုတ်မည်</button>
                 <div id="pdfStatus"></div>
             </div>
         </div>
 
+        <!-- Right Working Main Content Workspace Editor Area -->
         <div class="content-area">
             <div class="container">
                 <div class="form-group">
@@ -314,6 +326,7 @@
         </div>
     </div>
 
+    <!-- External Dependable Script Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
