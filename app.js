@@ -20,7 +20,7 @@ const quill = new Quill('#editor-container', {
 let chapters = [{ title: 'Chapter 1', content: '' }];
 let currentChapterIndex = 0;
 
-// Night Mode Toggle (Moved to top for safety)
+// Night Mode Toggle
 document.addEventListener('DOMContentLoaded', () => {
     const modeToggle = document.getElementById('modeToggle');
     if (modeToggle) {
@@ -38,18 +38,13 @@ document.addEventListener('DOMContentLoaded', () => {
 // Clean and Validate HTML Content for XHTML/EPUB compatibility
 function cleanHtmlForEpub(htmlContent) {
     if (!htmlContent) return '';
-    
-    // 1. Fix unclosed <br> tags into valid XHTML <br />
     let cleaned = htmlContent.replace(/<br\s*>/gi, '<br />');
-    
-    // 2. Fix unclosed <img> tags into valid XHTML <img />
     cleaned = cleaned.replace(/<img([^>]*)\s*>/gi, (match, p1) => {
         if (!p1.endsWith('/')) {
             return `<img${p1.trim()} />`;
         }
         return match;
     });
-    
     return cleaned;
 }
 
@@ -170,50 +165,12 @@ document.getElementById('extractPdfBtn').addEventListener('click', async () => {
     }
 });
 
-// Helper for Cover Image base64 conversion
+// Helper for Cover Image base64 conversion (No Text Overlay)
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = error => reject(error);
-    });
-}
-
-// Function to generate Cover Image text
-function drawTextOnImage(file, title, author) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = function (event) {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = function () {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                
-                ctx.drawImage(img, 0, 0);
-                
-                // Text Styling
-                ctx.fillStyle = 'white';
-                ctx.textAlign = 'center';
-                ctx.shadowColor = 'black';
-                ctx.shadowBlur = 7;
-                
-                // Draw Title
-                ctx.font = `bold ${Math.floor(canvas.width * 0.06)}px sans-serif`;
-                ctx.fillText(title, canvas.width / 2, canvas.height * 0.3);
-                
-                // Draw Author
-                ctx.font = `${Math.floor(canvas.width * 0.04)}px sans-serif`;
-                ctx.fillText(author, canvas.width / 2, canvas.height * 0.8);
-                
-                const dataUrl = canvas.toDataURL('image/jpeg');
-                resolve(dataUrl.split(',')[1]);
-            };
-        };
         reader.onerror = error => reject(error);
     });
 }
@@ -258,7 +215,6 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
     oebps.file("toc.ncx", tocNcx);
     
     chapters.forEach((ch, index) => {
-        // Clean XHTML output using cleaner function to fix unclosed elements
         const cleanedContent = cleanHtmlForEpub(ch.content);
         const chapterHtml = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>${ch.title}</title><style>body { font-family: sans-serif; padding: 10px; } h1 { text-align: center; }</style></head><body><h1>${ch.title}</h1><div>${cleanedContent}</div></body></html>`;
         oebps.file(`chapter${index + 1}.html`, chapterHtml);
@@ -266,7 +222,8 @@ document.getElementById('downloadEpub').addEventListener('click', async () => {
     
     if (coverFile) {
         try {
-            const base64Data = await drawTextOnImage(coverFile, title, author);
+            // Directly use the uploaded file without drawing any text over it
+            const base64Data = await fileToBase64(coverFile);
             oebps.file("cover.jpg", base64Data, { base64: true });
         } catch (e) {
             alert("Error processing cover image: " + e.message);
