@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced ePub Creator Pro (Direct Access)</title>
+    <title>Web ePub Creator Pro</title>
     <!-- Quill Rich Text Editor Stylesheet -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
@@ -33,16 +33,14 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background-color: var(--bg-color); color: var(--text-color); font-family: sans-serif; transition: background-color 0.3s; }
         
-        /* Main App Interface */
         header { background-color: var(--secondary-color); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
         .main-layout { display: flex; flex-wrap: wrap; padding: 20px; gap: 20px; max-width: 1200px; margin: 0 auto; }
         .sidebar { width: var(--sidebar-width); flex: 1 1 260px; display: flex; flex-direction: column; gap: 20px; }
         .content-area { flex: 1 1 600px; background: var(--container-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         
-        .container { max-width: 800px; margin: 0 auto; background: var(--container-bg); padding: 20px; border-radius: 8px; }
         .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 5px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="file"], input[type="email"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--container-bg); color: var(--text-color); }
+        input[type="text"], input[type="file"] { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--container-bg); color: var(--text-color); }
         
         .button, .file-input-label { display: inline-block; padding: 10px 15px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; text-align: center; text-decoration: none; font-size: 14px; }
         .btn-primary { background-color: var(--primary-color); }
@@ -58,7 +56,6 @@
         .chapter-item.active { background-color: var(--primary-color); color: white; }
         .chapter-item button { width: auto; padding: 2px 8px; margin: 0; }
 
-        /* Quill Editor Configs */
         #editor-container { height: 400px; background: #fff; color: #000; border-radius: 0 0 4px 4px; }
         body.dark-mode #editor-container { background: #fff; color: #000; }
         body.dark-mode .ql-toolbar { background: #eeeeee; border-radius: 4px 4px 0 0; }
@@ -72,7 +69,6 @@
 </head>
 <body class="dark-mode">
 
-    <!-- Main Content Area -->
     <header>
         <h3 style="margin:0;">🌐 Web ePub Creator Pro</h3>
         <div style="display:flex; gap:10px; align-items:center;">
@@ -135,16 +131,13 @@
         </div>
     </div>
 
-    <!-- External Dependent Script Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
-    <!-- App Business Logic Core Script -->
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-        // Initialize Quill Rich Text Editor
         const quill = new Quill('#editor-container', {
             theme: 'snow',
             modules: {
@@ -162,11 +155,7 @@
         const modeToggle = document.getElementById('modeToggle');
         modeToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
-            if(document.body.classList.contains('dark-mode')) {
-                modeToggle.innerText = "Light Mode";
-            } else {
-                modeToggle.innerText = "Dark Mode";
-            }
+            modeToggle.innerText = document.body.classList.contains('dark-mode') ? "Light Mode" : "Dark Mode";
         });
 
         function renderChapters() {
@@ -261,7 +250,6 @@
             }
         });
 
-        // Backup to JSON file
         document.getElementById('backupBookBtn').addEventListener('click', () => {
             saveCurrentChapterState();
             const bookData = {
@@ -278,7 +266,6 @@
             downloadAnchor.remove();
         });
 
-        // Load from Backup JSON
         document.getElementById('loadBackupFile').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -306,7 +293,6 @@
             reader.readAsText(file);
         });
 
-        // Reset App
         document.getElementById('resetAppBtn').addEventListener('click', () => {
             if(confirm("သေချာပါသလား? ဒေတာအားလုံး အစက ပြန်စပါမည်။")) {
                 document.getElementById('bookTitle').value = '';
@@ -320,7 +306,6 @@
             }
         });
 
-        // PDF Text Extraction Logic
         document.getElementById('extractPdfBtn').addEventListener('click', async () => {
             const fileInput = document.getElementById('pdfFile');
             const statusDiv = document.getElementById('pdfStatus');
@@ -358,7 +343,7 @@
             fileReader.readAsArrayBuffer(file);
         });
 
-        // EPUB GENERATION ENGINE (FIXED FOR XML/XHTML COMPLIANCE)
+        // STABLE VALIDATED EPUB GENERATION ENGINE WITH STRICT XHTML AUTO-REPAIR
         document.getElementById('downloadEpub').addEventListener('click', async () => {
             saveCurrentChapterState();
             if (chapters.length === 0) {
@@ -401,13 +386,27 @@
             oebps.file("style.css", `body { font-family: sans-serif; padding: 5%; line-height: 1.5; } h1, h2 { text-align: center; color: #2c3e50; } p { margin-bottom: 1em; text-align: justify; } img { max-width: 100%; height: auto; display: block; margin: 10px auto; }`);
 
             chapters.forEach((ch, index) => {
-                // Strict entity cleansing to fix 'nbsp not defined' issues
-                let cleanedContent = (ch.content || "")
+                // Step 1: Clean non-breaking space issues
+                let processedContent = (ch.content || "")
                     .replace(/&nbsp;/g, ' ')
                     .replace(/nbsp;/g, ' ')
                     .replace(/nbsp/g, ' ');
 
-                // Self-closing tag compliance check for paragraph structures
+                // Step 2: STRICT XHTML PARSING & REPAIR FOR UNCLOSED TAGS (Fixes <br> mismatch completely)
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(`<div>${processedContent}</div>`, 'text/html');
+                
+                // Convert all HTML <br> tags into strict self-closing XML <br /> tags
+                const brTags = doc.getElementsByTagName('br');
+                for (let i = brTags.length - 1; i >= 0; i--) {
+                    const xmlBr = doc.createElementNS("http://www.w3.org/1999/xhtml", "br");
+                    brTags[i].parentNode.replaceChild(xmlBr, brTags[i]);
+                }
+
+                // Serialize back to strict XML/XHTML compliance string
+                const serializer = new XMLSerializer();
+                const strictXmlContent = serializer.serializeToString(doc.body.firstChild);
+
                 const chHtml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
@@ -417,7 +416,7 @@
 </head>
 <body>
     <h2>${ch.title || 'Chapter ' + (index + 1)}</h2>
-    <div>${cleanedContent}</div>
+    ${strictXmlContent}
 </body>
 </html>`;
                 oebps.file(`chapter_${index + 1}.xhtml`, chHtml);
@@ -496,4 +495,3 @@
     </script>
 </body>
 </html>
-
