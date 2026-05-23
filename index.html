@@ -138,13 +138,14 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
+        // Full Rich Editor configuration supporting inline image data properly
         const quill = new Quill('#editor-container', {
             theme: 'snow',
             modules: {
                 toolbar: [
                     ['bold', 'italic', 'underline'],
                     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['clean']
+                    ['image', 'clean']
                 ]
             }
         });
@@ -343,7 +344,18 @@
             fileReader.readAsArrayBuffer(file);
         });
 
-        // STABLE VALIDATED EPUB GENERATION ENGINE WITH STRICT XHTML AUTO-REPAIR
+        // ASYNC IMAGE FETCHER AND PARSER FOR LOCAL IMAGE BLOB BINDING
+        async function convertImgToBlob(url) {
+            try {
+                const res = await fetch(url);
+                const blob = await res.blob();
+                return blob;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // DEEP EPUB COMPILER WITH INLINE IMAGE HARVESTING
         document.getElementById('downloadEpub').addEventListener('click', async () => {
             saveCurrentChapterState();
             if (chapters.length === 0) {
@@ -365,6 +377,7 @@
 </container>`);
 
             const oebps = zip.folder("OEBPS");
+            const imagesFolder = oebps.folder("images");
 
             const coverInput = document.getElementById('coverImage');
             let hasCover = false;
@@ -385,16 +398,61 @@
 
             oebps.file("style.css", `body { font-family: sans-serif; padding: 5%; line-height: 1.5; } h1, h2 { text-align: center; color: #2c3e50; } p { margin-bottom: 1em; text-align: justify; } img { max-width: 100%; height: auto; display: block; margin: 10px auto; }`);
 
-            chapters.forEach((ch, index) => {
-                // Step 1: Clean non-breaking space issues
+            let totalImageCounter = 0;
+            let capturedImages = [];
+
+            // Process chapters sequentially to extract base64 or remote image media links
+            for (let index = 0; index < chapters.length; index++) {
+                let ch = chapters[index];
                 let processedContent = (ch.content || "")
                     .replace(/&nbsp;/g, ' ')
                     .replace(/nbsp;/g, ' ')
                     .replace(/nbsp/g, ' ');
 
-                // Step 2: STRICT XHTML PARSING & REPAIR FOR UNCLOSED TAGS (Fixes <br> mismatch completely)
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(`<div>${processedContent}</div>`, 'text/html');
+
+                // Extract all img nodes inside chapter text
+                const imgNodes = doc.getElementsByTagName('img');
+                for (let m = 0; m < imgNodes.length; m++) {
+                    let src = imgNodes[m].getAttribute('src');
+                    if (src) {
+                        totalImageCounter++;
+                        let imgId = `inline_img_${totalImageCounter}`;
+                        let ext = ".jpg";
+                        let mType = "image/jpeg";
+
+                        if (src.startsWith('data:image/')) {
+                            const match = src.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+                            if (match) {
+                                mType = match[1];
+                                ext = getExtension(mType);
+                                let base64Data = match[2];
+                                // Convert to binary data for JSZip compression
+                                let binaryStr = atob(base64Data);
+                                let len = binaryStr.length;
+                                let bytes = new Uint8Array(len);
+                                for (let i = 0; i < len; i++) {
+                                    bytes[i] = binaryStr.charCodeAt(i);
+                                }
+                                imagesFolder.file(`${imgId}${ext}`, bytes.buffer);
+                                capturedImages.push({ id: imgId, href: `images/${imgId}${ext}`, type: mType });
+                                imgNodes[m].setAttribute('src', `images/${imgId}${ext}`);
+                            }
+                        } else if (src.startsWith('http')) {
+                            // Handle cross-origin or remote images gracefully if possible
+                            let blob = await convertImgToBlob(src);
+                            if (blob) {
+                                mType = blob.type || "image/jpeg";
+                                ext = getExtension(mType);
+                                let buffer = await blob.arrayBuffer();
+                                imagesFolder.file(`${imgId}${ext}`, buffer);
+                                capturedImages.push({ id: imgId, href: `images/${imgId}${ext}`, type: mType });
+                                imgNodes[m].setAttribute('src', `images/${imgId}${ext}`);
+                            }
+                        }
+                    }
+                }
                 
                 // Convert all HTML <br> tags into strict self-closing XML <br /> tags
                 const brTags = doc.getElementsByTagName('br');
@@ -403,7 +461,6 @@
                     brTags[i].parentNode.replaceChild(xmlBr, brTags[i]);
                 }
 
-                // Serialize back to strict XML/XHTML compliance string
                 const serializer = new XMLSerializer();
                 const strictXmlContent = serializer.serializeToString(doc.body.firstChild);
 
@@ -420,7 +477,7 @@
 </body>
 </html>`;
                 oebps.file(`chapter_${index + 1}.xhtml`, chHtml);
-            });
+            }
 
             let manifestItems = `
         <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
@@ -430,6 +487,11 @@
             if (hasCover) {
                 manifestItems += `\n        <item id="cover-image" href="cover${getExtension(coverMediaType)}" media-type="${coverMediaType}"/>`;
             }
+
+            // Append extracted inline images metadata to content manifest
+            capturedImages.forEach(img => {
+                manifestItems += `\n        <item id="${img.id}" href="${img.href}" media-type="${img.type}"/>`;
+            });
 
             chapters.forEach((ch, index) => {
                 manifestItems += `\n        <item id="ch_${index + 1}" href="chapter_${index + 1}.xhtml" media-type="application/xhtml+xml"/>`;
