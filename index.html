@@ -151,6 +151,7 @@
 
         let chapters = [];
         let currentChapterId = null;
+        let db = null;
 
         const modeToggle = document.getElementById('modeToggle');
         modeToggle.addEventListener('click', () => {
@@ -158,23 +159,53 @@
             modeToggle.innerText = document.body.classList.contains('dark-mode') ? "Light Mode" : "Dark Mode";
         });
 
-        // LOCAL STORAGE AUTO-SAVE SYSTEM
-        function autoSaveToLocalStorage() {
+        // INDEXEDDB ADVANCED LARGE STORAGE ENGINE (UNLIMITED STORAGE)
+        const dbName = "ePubCreatorDatabase";
+        const storeName = "bookStore";
+        const dbRequest = indexedDB.open(dbName, 1);
+
+        dbRequest.onupgradeneeded = function(e) {
+            let activeDb = e.target.result;
+            if (!activeDb.objectStoreNames.contains(storeName)) {
+                activeDb.createObjectStore(storeName, { keyPath: "id" });
+            }
+        };
+
+        dbRequest.onsuccess = function(e) {
+            db = e.target.result;
+            loadFromDatabase(); // Auto load data as soon as database is ready
+        };
+
+        dbRequest.onerror = function(e) {
+            console.error("Database connection failed", e);
+        };
+
+        function autoSaveToDatabase() {
+            if (!db) return;
             saveCurrentChapterState();
+            
             const saveData = {
+                id: "current_book",
                 title: document.getElementById('bookTitle').value.trim(),
                 author: document.getElementById('bookAuthor').value.trim(),
                 chapters: chapters,
                 currentChapterId: currentChapterId
             };
-            localStorage.setItem('epub_creator_autosave', JSON.stringify(saveData));
+
+            const transaction = db.transaction([storeName], "readwrite");
+            const store = transaction.objectStore(storeName);
+            store.put(saveData);
         }
 
-        function loadFromLocalStorage() {
-            const saved = localStorage.getItem('epub_creator_autosave');
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
+        function loadFromDatabase() {
+            if (!db) return;
+            const transaction = db.transaction([storeName], "readonly");
+            const store = transaction.objectStore(storeName);
+            const request = store.get("current_book");
+
+            request.onsuccess = function(e) {
+                const data = e.target.result;
+                if (data) {
                     document.getElementById('bookTitle').value = data.title || '';
                     document.getElementById('bookAuthor').value = data.author || '';
                     chapters = data.chapters || [];
@@ -188,10 +219,8 @@
                             quill.root.innerHTML = ch.content;
                         }
                     }
-                } catch (e) {
-                    console.error("Autosave load error", e);
                 }
-            }
+            };
         }
 
         function renderChapters() {
@@ -227,7 +256,7 @@
                 quill.root.innerHTML = ch.content;
             }
             renderChapters();
-            autoSaveToLocalStorage();
+            autoSaveToDatabase();
         }
 
         function saveCurrentChapterState() {
@@ -255,7 +284,7 @@
                     quill.root.innerHTML = '';
                 }
                 renderChapters();
-                autoSaveToLocalStorage();
+                autoSaveToDatabase();
             }
         }
 
@@ -268,14 +297,14 @@
             document.getElementById('chapterTitle').value = newCh.title;
             quill.root.innerHTML = '';
             renderChapters();
-            autoSaveToLocalStorage();
+            autoSaveToDatabase();
         });
 
         document.getElementById('clearContentBtn').addEventListener('click', () => {
-            if(confirm("ဤခန်းတွင်းရှိ စာသားအားလုံးကို ဖျက်ပစ်ရန် သေချာပါသလား?")) {
+            if(confirm("ဤခန်းတွင်းရှိ สာသားအားလုံးကို ဖျက်ပစ်ရန် သေချာပါသလား?")) {
                 quill.root.innerHTML = '';
                 saveCurrentChapterState();
-                autoSaveToLocalStorage();
+                autoSaveToDatabase();
             }
         });
 
@@ -288,22 +317,19 @@
                     if(activeItem) activeItem.innerText = ch.title || 'Untitled Chapter';
                 }
             }
-            autoSaveToLocalStorage();
+            autoSaveToDatabase();
         });
 
-        // Monitor inputs and text changes for auto-save
-        document.getElementById('bookTitle').addEventListener('input', autoSaveToLocalStorage);
-        document.getElementById('bookAuthor').addEventListener('input', autoSaveToLocalStorage);
+        // Monitor elements triggering auto-save
+        document.getElementById('bookTitle').addEventListener('input', autoSaveToDatabase);
+        document.getElementById('bookAuthor').addEventListener('input', autoSaveToDatabase);
+        
+        let debounceTimer;
         quill.on('text-change', () => {
-            saveCurrentChapterState();
-            // Debounced or direct local storage save
-            const saveData = {
-                title: document.getElementById('bookTitle').value.trim(),
-                author: document.getElementById('bookAuthor').value.trim(),
-                chapters: chapters,
-                currentChapterId: currentChapterId
-            };
-            localStorage.setItem('epub_creator_autosave', JSON.stringify(saveData));
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                autoSaveToDatabase();
+            }, 500); // Save automatically 500ms after user stops typing
         });
 
         document.getElementById('backupBookBtn').addEventListener('click', () => {
@@ -341,7 +367,7 @@
                         quill.root.innerHTML = '';
                     }
                     renderChapters();
-                    autoSaveToLocalStorage();
+                    autoSaveToDatabase();
                     alert("စာအုပ် Backup ဒေတာများကို အောင်မြင်စွာ ပြန်လည်တင်သွင်းပြီးပါပြီ။");
                 } catch(err) {
                     alert("ဖတ်မရပါ။ ကောင်းမွန်သော Backup JSON ဖိုင် ဖြစ်ပါစေ။");
@@ -351,8 +377,12 @@
         });
 
         document.getElementById('resetAppBtn').addEventListener('click', () => {
-            if(confirm("သေသာပါသလား? ဒေတာအားလုံး အစက ပြန်စပါမည်။ (Autosave ပါ ပျက်ပါမည်)")) {
-                localStorage.removeItem('epub_creator_autosave');
+            if(confirm("သေချာပါသလား? ဒေတာအားလုံး အစက ပြန်စပါမည်။")) {
+                if (db) {
+                    const transaction = db.transaction([storeName], "readwrite");
+                    const store = transaction.objectStore(storeName);
+                    store.delete("current_book");
+                }
                 document.getElementById('bookTitle').value = '';
                 document.getElementById('bookAuthor').value = '';
                 document.getElementById('coverImage').value = '';
@@ -390,7 +420,7 @@
                     }
                     quill.root.innerHTML = quill.root.innerHTML + "<br><br>" + fullText.replace(/\n/g, '<br>');
                     saveCurrentChapterState();
-                    autoSaveToLocalStorage();
+                    autoSaveToDatabase();
                     statusDiv.innerText = "PDF မှ စာသားများကို အောင်မြင်စွာ ထည့်သွင်းပြီးပါပြီ။";
                     statusDiv.style.color = "var(--success-color)";
                 } catch (error) {
@@ -604,9 +634,6 @@
             if (mimeType === "image/webp") return ".webp";
             return ".jpg";
         }
-
-        // INITIALIZE AND LOAD AUTOMATICALLY ON PAGE LOAD
-        window.addEventListener('DOMContentLoaded', loadFromLocalStorage);
     </script>
 </body>
 </html>
