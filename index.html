@@ -138,7 +138,6 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-        // Full Rich Editor configuration supporting inline image data properly
         const quill = new Quill('#editor-container', {
             theme: 'snow',
             modules: {
@@ -158,6 +157,42 @@
             document.body.classList.toggle('dark-mode');
             modeToggle.innerText = document.body.classList.contains('dark-mode') ? "Light Mode" : "Dark Mode";
         });
+
+        // LOCAL STORAGE AUTO-SAVE SYSTEM
+        function autoSaveToLocalStorage() {
+            saveCurrentChapterState();
+            const saveData = {
+                title: document.getElementById('bookTitle').value.trim(),
+                author: document.getElementById('bookAuthor').value.trim(),
+                chapters: chapters,
+                currentChapterId: currentChapterId
+            };
+            localStorage.setItem('epub_creator_autosave', JSON.stringify(saveData));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('epub_creator_autosave');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    document.getElementById('bookTitle').value = data.title || '';
+                    document.getElementById('bookAuthor').value = data.author || '';
+                    chapters = data.chapters || [];
+                    currentChapterId = data.currentChapterId || null;
+                    
+                    renderChapters();
+                    if (currentChapterId !== null) {
+                        const ch = chapters.find(c => c.id === currentChapterId);
+                        if (ch) {
+                            document.getElementById('chapterTitle').value = ch.title;
+                            quill.root.innerHTML = ch.content;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Autosave load error", e);
+                }
+            }
+        }
 
         function renderChapters() {
             const list = document.getElementById('chapter-list');
@@ -192,6 +227,7 @@
                 quill.root.innerHTML = ch.content;
             }
             renderChapters();
+            autoSaveToLocalStorage();
         }
 
         function saveCurrentChapterState() {
@@ -219,6 +255,7 @@
                     quill.root.innerHTML = '';
                 }
                 renderChapters();
+                autoSaveToLocalStorage();
             }
         }
 
@@ -231,12 +268,14 @@
             document.getElementById('chapterTitle').value = newCh.title;
             quill.root.innerHTML = '';
             renderChapters();
+            autoSaveToLocalStorage();
         });
 
         document.getElementById('clearContentBtn').addEventListener('click', () => {
             if(confirm("ဤခန်းတွင်းရှိ စာသားအားလုံးကို ဖျက်ပစ်ရန် သေချာပါသလား?")) {
                 quill.root.innerHTML = '';
                 saveCurrentChapterState();
+                autoSaveToLocalStorage();
             }
         });
 
@@ -249,6 +288,22 @@
                     if(activeItem) activeItem.innerText = ch.title || 'Untitled Chapter';
                 }
             }
+            autoSaveToLocalStorage();
+        });
+
+        // Monitor inputs and text changes for auto-save
+        document.getElementById('bookTitle').addEventListener('input', autoSaveToLocalStorage);
+        document.getElementById('bookAuthor').addEventListener('input', autoSaveToLocalStorage);
+        quill.on('text-change', () => {
+            saveCurrentChapterState();
+            // Debounced or direct local storage save
+            const saveData = {
+                title: document.getElementById('bookTitle').value.trim(),
+                author: document.getElementById('bookAuthor').value.trim(),
+                chapters: chapters,
+                currentChapterId: currentChapterId
+            };
+            localStorage.setItem('epub_creator_autosave', JSON.stringify(saveData));
         });
 
         document.getElementById('backupBookBtn').addEventListener('click', () => {
@@ -286,6 +341,7 @@
                         quill.root.innerHTML = '';
                     }
                     renderChapters();
+                    autoSaveToLocalStorage();
                     alert("စာအုပ် Backup ဒေတာများကို အောင်မြင်စွာ ပြန်လည်တင်သွင်းပြီးပါပြီ။");
                 } catch(err) {
                     alert("ဖတ်မရပါ။ ကောင်းမွန်သော Backup JSON ဖိုင် ဖြစ်ပါစေ။");
@@ -295,7 +351,8 @@
         });
 
         document.getElementById('resetAppBtn').addEventListener('click', () => {
-            if(confirm("သေချာပါသလား? ဒေတာအားလုံး အစက ပြန်စပါမည်။")) {
+            if(confirm("သေသာပါသလား? ဒေတာအားလုံး အစက ပြန်စပါမည်။ (Autosave ပါ ပျက်ပါမည်)")) {
+                localStorage.removeItem('epub_creator_autosave');
                 document.getElementById('bookTitle').value = '';
                 document.getElementById('bookAuthor').value = '';
                 document.getElementById('coverImage').value = '';
@@ -333,6 +390,7 @@
                     }
                     quill.root.innerHTML = quill.root.innerHTML + "<br><br>" + fullText.replace(/\n/g, '<br>');
                     saveCurrentChapterState();
+                    autoSaveToLocalStorage();
                     statusDiv.innerText = "PDF မှ စာသားများကို အောင်မြင်စွာ ထည့်သွင်းပြီးပါပြီ။";
                     statusDiv.style.color = "var(--success-color)";
                 } catch (error) {
@@ -344,7 +402,6 @@
             fileReader.readAsArrayBuffer(file);
         });
 
-        // ASYNC IMAGE FETCHER AND PARSER FOR LOCAL IMAGE BLOB BINDING
         async function convertImgToBlob(url) {
             try {
                 const res = await fetch(url);
@@ -355,7 +412,6 @@
             }
         }
 
-        // DEEP EPUB COMPILER WITH INLINE IMAGE HARVESTING
         document.getElementById('downloadEpub').addEventListener('click', async () => {
             saveCurrentChapterState();
             if (chapters.length === 0) {
@@ -401,7 +457,6 @@
             let totalImageCounter = 0;
             let capturedImages = [];
 
-            // Process chapters sequentially to extract base64 or remote image media links
             for (let index = 0; index < chapters.length; index++) {
                 let ch = chapters[index];
                 let processedContent = (ch.content || "")
@@ -412,7 +467,6 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(`<div>${processedContent}</div>`, 'text/html');
 
-                // Extract all img nodes inside chapter text
                 const imgNodes = doc.getElementsByTagName('img');
                 for (let m = 0; m < imgNodes.length; m++) {
                     let src = imgNodes[m].getAttribute('src');
@@ -428,7 +482,6 @@
                                 mType = match[1];
                                 ext = getExtension(mType);
                                 let base64Data = match[2];
-                                // Convert to binary data for JSZip compression
                                 let binaryStr = atob(base64Data);
                                 let len = binaryStr.length;
                                 let bytes = new Uint8Array(len);
@@ -440,7 +493,6 @@
                                 imgNodes[m].setAttribute('src', `images/${imgId}${ext}`);
                             }
                         } else if (src.startsWith('http')) {
-                            // Handle cross-origin or remote images gracefully if possible
                             let blob = await convertImgToBlob(src);
                             if (blob) {
                                 mType = blob.type || "image/jpeg";
@@ -454,7 +506,6 @@
                     }
                 }
                 
-                // Convert all HTML <br> tags into strict self-closing XML <br /> tags
                 const brTags = doc.getElementsByTagName('br');
                 for (let i = brTags.length - 1; i >= 0; i--) {
                     const xmlBr = doc.createElementNS("http://www.w3.org/1999/xhtml", "br");
@@ -488,7 +539,6 @@
                 manifestItems += `\n        <item id="cover-image" href="cover${getExtension(coverMediaType)}" media-type="${coverMediaType}"/>`;
             }
 
-            // Append extracted inline images metadata to content manifest
             capturedImages.forEach(img => {
                 manifestItems += `\n        <item id="${img.id}" href="${img.href}" media-type="${img.type}"/>`;
             });
@@ -554,6 +604,9 @@
             if (mimeType === "image/webp") return ".webp";
             return ".jpg";
         }
+
+        // INITIALIZE AND LOAD AUTOMATICALLY ON PAGE LOAD
+        window.addEventListener('DOMContentLoaded', loadFromLocalStorage);
     </script>
 </body>
 </html>
