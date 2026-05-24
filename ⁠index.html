@@ -51,9 +51,9 @@
 
         .backup-section { border: 1px solid var(--border-color); padding: 15px; border-radius: 6px; display: flex; flex-direction: column; gap: 10px; }
         .backup-title { font-size: 0.85em; font-weight: bold; text-align: center; }
-        .chapter-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 4px; }
-        .chapter-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; }
-        .chapter-item.active { background-color: var(--primary-color); color: white; }
+        .chapter-list { display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 4px; }
+        .chapter-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; }
+        .chapter-item.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
         .chapter-item button { width: auto; padding: 2px 8px; margin: 0; }
 
         #editor-container { height: 400px; background: #fff; color: #000; border-radius: 0 0 4px 4px; }
@@ -173,7 +173,7 @@
 
         dbRequest.onsuccess = function(e) {
             db = e.target.result;
-            loadFromDatabase(); // Auto load data as soon as database is ready
+            loadFromDatabase(); 
         };
 
         dbRequest.onerror = function(e) {
@@ -211,6 +211,9 @@
                     chapters = data.chapters || [];
                     currentChapterId = data.currentChapterId || null;
                     
+                    // AUTO-REPAIR MISSING OR DUPLICATED IDS
+                    repairChapterIds();
+
                     renderChapters();
                     if (currentChapterId !== null) {
                         const ch = chapters.find(c => c.id === currentChapterId);
@@ -223,13 +226,34 @@
             };
         }
 
+        // CRITICAL FIX: REPAIR IDS SYSTEM FOR IMPORTED DATA
+        function repairChapterIds() {
+            let ids = new Set();
+            chapters.forEach((ch, index) => {
+                // If ID is missing, empty, or already exists, generate a truly unique one
+                if (!ch.id || ch.id === "" || ids.has(ch.id)) {
+                    ch.id = "ch_id_" + index + "_" + Math.random().toString(36).substr(2, 9);
+                }
+                ids.add(ch.id);
+            });
+            if (chapters.length > 0 && (currentChapterId === null || !ids.has(currentChapterId))) {
+                currentChapterId = chapters[0].id;
+            }
+        }
+
         function renderChapters() {
             const list = document.getElementById('chapter-list');
             list.innerHTML = '';
             chapters.forEach((ch, index) => {
                 const item = document.createElement('div');
                 item.className = 'chapter-item' + (ch.id === currentChapterId ? ' active' : '');
-                item.onclick = () => selectChapter(ch.id);
+                
+                // Clicking anywhere on the box changes chapter correctly
+                item.addEventListener('click', (e) => {
+                    if (e.target.tagName !== 'BUTTON') {
+                        selectChapter(ch.id);
+                    }
+                });
 
                 const titleSpan = document.createElement('span');
                 titleSpan.innerText = ch.title || `Chapter ${index + 1}`;
@@ -290,7 +314,7 @@
 
         document.getElementById('addChapterBtn').addEventListener('click', () => {
             saveCurrentChapterState();
-            const newId = Date.now().toString();
+            const newId = "ch_id_" + Date.now().toString() + "_" + Math.random().toString(36).substr(2, 5);
             const newCh = { id: newId, title: 'အခန်းအသစ် ' + (chapters.length + 1), content: '' };
             chapters.push(newCh);
             currentChapterId = newId;
@@ -301,7 +325,7 @@
         });
 
         document.getElementById('clearContentBtn').addEventListener('click', () => {
-            if(confirm("ဤခန်းတွင်းရှိ สာသားအားလုံးကို ဖျက်ပစ်ရန် သေချာပါသလား?")) {
+            if(confirm("ဤခန်းတွင်းရှိ စာသားအားလုံးကို ဖျက်ပစ်ရန် သေချာပါသလား?")) {
                 quill.root.innerHTML = '';
                 saveCurrentChapterState();
                 autoSaveToDatabase();
@@ -320,7 +344,6 @@
             autoSaveToDatabase();
         });
 
-        // Monitor elements triggering auto-save
         document.getElementById('bookTitle').addEventListener('input', autoSaveToDatabase);
         document.getElementById('bookAuthor').addEventListener('input', autoSaveToDatabase);
         
@@ -329,7 +352,7 @@
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 autoSaveToDatabase();
-            }, 500); // Save automatically 500ms after user stops typing
+            }, 500); 
         });
 
         document.getElementById('backupBookBtn').addEventListener('click', () => {
@@ -358,17 +381,22 @@
                     document.getElementById('bookTitle').value = importedData.title || '';
                     document.getElementById('bookAuthor').value = importedData.author || '';
                     chapters = importedData.chapters || [];
-                    currentChapterId = chapters.length > 0 ? chapters[0].id : null;
-                    if (currentChapterId !== null) {
+                    
+                    // FORCE REPAIR IDS IMMEDIATELY ON IMPORT
+                    repairChapterIds();
+
+                    if (chapters.length > 0) {
+                        currentChapterId = chapters[0].id;
                         document.getElementById('chapterTitle').value = chapters[0].title;
                         quill.root.innerHTML = chapters[0].content;
                     } else {
+                        currentChapterId = null;
                         document.getElementById('chapterTitle').value = '';
                         quill.root.innerHTML = '';
                     }
                     renderChapters();
                     autoSaveToDatabase();
-                    alert("စာအုပ် Backup ဒေတာများကို အောင်မြင်စွာ ပြန်လည်တင်သွင်းပြီးပါပြီ။");
+                    alert("စာအုပ် Backup ဒေတာများကို အောင်မြင်စွာ ပြန်လည်တင်သွင်းပြီး ID များအား ပြုပြင်ပြီးပါပြီ။");
                 } catch(err) {
                     alert("ဖတ်မရပါ။ ကောင်းမွန်သော Backup JSON ဖိုင် ဖြစ်ပါစေ။");
                 }
