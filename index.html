@@ -34,7 +34,7 @@
         .rich-editor {
             width: 100%;
             min-height: 200px;
-            max-height: 400px;
+            max-height: 450px;
             overflow-y: auto;
             padding: 12px;
             background-color: var(--input-bg);
@@ -45,12 +45,14 @@
             font-family: inherit;
             line-height: 1.6;
         }
+        /* စာရေးခန်းထဲက ပုံများကို ညီညာလှပစေရန် */
         .rich-editor img {
             max-width: 100%;
             height: auto;
             display: block;
-            margin: 10px 0;
+            margin: 12px auto;
             border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
     </style>
 </head>
@@ -239,21 +241,18 @@
                             <button class="btn-delete-chapter" style="background: #c0392b; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
                         </div>
                         
-                        <!-- အခန်းခေါင်းစဉ် -->
                         <input type="text" class="ch-title-input" placeholder="${translations[currentLang].chapter_placeholder}" style="width: 100%; padding: 10px; margin-bottom: 10px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-color);">
                         
-                        <!-- Rich Text Editor Toolbar (ဓာတ်ပုံ Icon နှင့် အခြား Feature များ) -->
                         <div class="editor-toolbar">
                             <button type="button" class="editor-btn format-bold" title="Bold"><i class="fa-solid fa-bold"></i></button>
                             <button type="button" class="editor-btn format-italic" title="Italic"><i class="fa-solid fa-italic"></i></button>
                             <button type="button" class="editor-btn format-underline" title="Underline"><i class="fa-solid fa-underline"></i></button>
                             <span style="color: #2c3a59;">|</span>
-                            <!-- ဤခလုတ်သည် စာသားထဲသို့ ပုံထည့်ပေးမည့် Icon ဖြစ်သည် -->
-                            <button type="button" class="editor-btn insert-image-btn" title="Insert Image"><i class="fa-regular fa-image"></i></button>
-                            <input type="file" class="editor-file-hidden" accept="image/*" style="display: none;">
+                            <button type="button" class="editor-btn insert-image-btn" title="Insert Multiple Images"><i class="fa-regular fa-image"></i></button>
+                            <!-- multiple attribute ထည့်ထားသဖြင့် ပုံအများကြီးပြိုင်တူရွေးနိုင်သည် -->
+                            <input type="file" class="editor-file-hidden" accept="image/*" multiple style="display: none;">
                         </div>
 
-                        <!-- စာသားရော ဓာတ်ပုံပါ တစ်နေရာတည်းတွင် ရိုက်ထည့်နိုင်သော နေရာ -->
                         <div class="rich-editor ch-content-editor" contenteditable="true" placeholder="${translations[currentLang].content_placeholder}"></div>
                     `;
                     
@@ -263,22 +262,30 @@
                     const fileHidden = chapterCard.querySelector('.editor-file-hidden');
                     const imgBtn = chapterCard.querySelector('.insert-image-btn');
 
-                    // Toolbar လုပ်ဆောင်ချက်များ
                     chapterCard.querySelector('.format-bold').addEventListener('click', () => { document.execCommand('bold', false, null); richEditor.focus(); });
                     chapterCard.querySelector('.format-italic').addEventListener('click', () => { document.execCommand('italic', false, null); richEditor.focus(); });
                     chapterCard.querySelector('.format-underline').addEventListener('click', () => { document.execCommand('underline', false, null); richEditor.focus(); });
 
-                    // ဓာတ်ပုံထည့်ခြင်း စနစ်
                     imgBtn.addEventListener('click', () => fileHidden.click());
-                    fileHidden.addEventListener('change', () => {
-                        if (fileHidden.files && fileHidden.files[0]) {
-                            const reader = new FileReader();
-                            reader.onload = (e) => {
-                                richEditor.focus();
-                                // စာရိုက်နေသည့် နေရာ၏ ကြားထဲသို့ ပုံထည့်သွင်းပေးခြင်း
-                                document.execCommand('insertImage', false, e.target.result);
-                            };
-                            reader.readAsDataURL(fileHidden.files[0]);
+                    
+                    // ပုံအများကြီးကို ကွင်းဆက် (Loop) ပတ်ပြီး တစ်ခါတည်း အကုန်သွင်းပေးမည့်စနစ်
+                    fileHidden.addEventListener('change', async () => {
+                        if (fileHidden.files && fileHidden.files.length > 0) {
+                            richEditor.focus();
+                            
+                            for (let i = 0; i < fileHidden.files.length; i++) {
+                                const file = fileHidden.files[i];
+                                await new Promise((resolve) => {
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => {
+                                        document.execCommand('insertImage', false, e.target.result);
+                                        resolve();
+                                    };
+                                    reader.readAsDataURL(file);
+                                });
+                            }
+                            // ရွေးပြီးသွားရင် input ကို reset ပြန်လုပ်ပေးခြင်း
+                            fileHidden.value = '';
                         }
                     });
 
@@ -317,7 +324,6 @@
                 }
             });
 
-            // ePub ထုတ်ယူမည့် စနစ် (HTML Content များကို သေချာပြောင်းလဲပေးမည်)
             document.getElementById('btn-download-epub').addEventListener('click', async () => {
                 const title = bookTitleInput.value.trim() || "Untitled Book";
                 const author = bookAuthorInput.value.trim() || "Unknown Author";
