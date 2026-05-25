@@ -1,638 +1,612 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="my">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web ePub Creator Pro</title>
-    <!-- Quill Rich Text Editor Stylesheet -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    
+    <!-- Tailwind CSS & FontAwesome Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- TinyMCE Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.7.0/tinymce.min.js"></script>
+    
+    <!-- JSZip -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
     <style>
-        :root {
-            --bg-color: #f4f6f9;
-            --container-bg: #ffffff;
-            --text-color: #333333;
-            --border-color: #cccccc;
-            --primary-color: #34495e;
-            --secondary-color: #2c3e50;
-            --success-color: #2ecc71;
-            --danger-color: #e74c3c;
-            --warning-color: #f39c12;
-            --sidebar-width: 260px;
-        }
-
-        body.dark-mode {
-            --bg-color: #1e2538;
-            --container-bg: #252e3c;
-            --text-color: #cfd8dc;
-            --border-color: #34495e;
-            --primary-color: #51a4fa;
-            --secondary-color: #3a4759;
-            --success-color: #52be80;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: var(--bg-color); color: var(--text-color); font-family: sans-serif; transition: background-color 0.3s; }
-        
-        header { background-color: var(--secondary-color); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .main-layout { display: flex; flex-wrap: wrap; padding: 20px; gap: 20px; max-width: 1200px; margin: 0 auto; }
-        .sidebar { width: var(--sidebar-width); flex: 1 1 260px; display: flex; flex-direction: column; gap: 20px; }
-        .content-area { flex: 1 1 600px; background: var(--container-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        
-        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 5px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="file"] { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--container-bg); color: var(--text-color); }
-        
-        .button, .file-input-label { display: inline-block; padding: 10px 15px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; text-align: center; text-decoration: none; font-size: 14px; }
-        .btn-primary { background-color: var(--primary-color); }
-        .btn-secondary { background-color: var(--secondary-color); }
-        .btn-success { background-color: var(--success-color); width: 100%; font-size: 16px; font-weight: bold; padding: 12px; margin-top: 10px; }
-        .btn-danger { background-color: var(--danger-color); color: white; width: 100%; padding: 8px; border-radius: 4px; margin-top: 5px; }
-        .btn-warning { background-color: var(--warning-color); }
-
-        .backup-section { border: 1px solid var(--border-color); padding: 15px; border-radius: 6px; display: flex; flex-direction: column; gap: 10px; }
-        .backup-title { font-size: 0.85em; font-weight: bold; text-align: center; }
-        .chapter-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 4px; }
-        .chapter-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; }
-        .chapter-item.active { background-color: var(--primary-color); color: white; }
-        .chapter-item button { width: auto; padding: 2px 8px; margin: 0; }
-
-        #editor-container { height: 400px; background: #fff; color: #000; border-radius: 0 0 4px 4px; }
-        body.dark-mode #editor-container { background: #fff; color: #000; }
-        body.dark-mode .ql-toolbar { background: #eeeeee; border-radius: 4px 4px 0 0; }
-        #pdfStatus { font-size: 0.85em; margin-top: 5px; text-align: center; font-weight: bold; }
-
-        @media (max-width: 768px) {
-            .main-layout { flex-direction: column; padding: 10px; }
-            .sidebar, .content-area { width: 100%; }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap');
+        body { font-family: 'Padauk', sans-serif; }
+        .tox-tinymce { border-radius: 0.5rem !important; border: 1px solid #334155 !important; }
     </style>
 </head>
-<body class="dark-mode">
+<body class="bg-slate-900 text-slate-100 min-h-screen pb-12">
 
-    <header>
-        <h3 style="margin:0;">🌐 Web ePub Creator Pro</h3>
-        <div style="display:flex; gap:10px; align-items:center;">
-            <span style="font-size:14px; color:#52be80;">🟢 Premium Unlocked</span>
-            <button id="modeToggle" style="width:auto; padding:5px 10px;" class="button btn-warning">Light Mode</button>
+    <!-- Hidden Input For Native Mobile Image Picker -->
+    <input type="file" id="hidden-editor-image-picker" accept="image/*" class="hidden" onchange="handleInlineImageUpload(event)">
+
+    <!-- 🌐 Main Container -->
+    <div class="max-w-xl mx-auto px-4 pt-6">
+        
+        <!-- 🎯 Header Title -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-amber-400 flex items-center gap-2">
+                <i class="fa-solid fa-book-open"></i> Web ePub Creator Pro
+            </h1>
+            <span class="bg-amber-500/20 text-amber-300 text-xs px-2.5 py-1 rounded-full border border-amber-500/30 font-medium">Premium</span>
         </div>
-    </header>
 
-    <div class="main-layout">
-        <div class="sidebar">
-            <div class="backup-section">
-                <div class="backup-title">💾 စာအုပ် BACKUP စီမံခန့်ခွဲမှု</div>
-                <button id="backupBookBtn" class="button btn-secondary">💾 လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)</button>
-                <label class="file-input-label" style="margin:0;">
-                    📥 စာအုပ်ဟောင်း ပြန်တင်မည် (Load Backup)
-                    <input type="file" id="loadBackupFile" accept=".json" style="display:none;">
+        <!-- 📦 BACKUP & RESET SECTION -->
+        <div class="bg-slate-800 rounded-xl p-4 border border-slate-700/60 shadow-xl mb-6">
+            <h2 class="text-sm font-semibold text-slate-400 mb-3 flex items-center gap-1.5">
+                <i class="fa-solid fa-database text-amber-400"></i> စာအုပ် BACKUP စီမံခန့်ခွဲမှု
+            </h2>
+            <div class="grid grid-cols-1 gap-2.5">
+                <button onclick="exportToBackupFile()" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 py-3 px-4 rounded-lg flex items-center justify-center gap-2 font-medium transition active:scale-95 border border-slate-600">
+                    <i class="fa-solid fa-file-export text-emerald-400"></i>  လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)
+                </button>
+                
+                <label class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 py-3 px-4 rounded-lg flex items-center justify-center gap-2 font-medium transition active:scale-95 border border-slate-600 cursor-pointer text-center">
+                    <i class="fa-solid fa-file-import text-sky-400"></i> စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup)
+                    <input type="file" id="backup-upload" accept=".json" onchange="loadFromBackupFile(event)" class="hidden">
                 </label>
-                <button id="resetAppBtn" class="button btn-danger">🧨 စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)</button>
+                
+                <button onclick="resetAllData()" class="w-full bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 py-3 px-4 rounded-lg flex items-center justify-center gap-2 font-medium transition active:scale-95 border border-rose-800/50">
+                    <i class="fa-solid fa-trash-can text-rose-400"></i> စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)
+                </button>
             </div>
-
-            <div class="form-group">
-                <label>စာအုပ်အမည် (Book Title)</label>
-                <input type="text" id="bookTitle" placeholder="My Novel">
-            </div>
-            <div class="form-group">
-                <label>စာရေးဆရာ (Author)</label>
-                <input type="text" id="bookAuthor" placeholder="Unknown Author">
-            </div>
-            <div class="form-group">
-                <label>မျက်နှာဖုံးပုံ (Cover Image)</label>
-                <input type="file" id="coverImage" accept="image/*">
-            </div>
-
-            <hr style="border:0; border-top:1px solid var(--border-color); margin:10px 0;">
-            <h3>အခန်းများ (Chapters)</h3>
-            <button id="addChapterBtn" class="button btn-primary">+ အခန်းတိုးမည် (Add Chapter)</button>
-            <div class="chapter-list" id="chapter-list"></div>
         </div>
 
-        <div class="content-area">
-            <div class="backup-section" style="background: rgba(46, 204, 113, 0.1);">
-                <div class="backup-title" style="color: var(--success-color);">📄 PDF မှ စာသားထုတ်ယူရန် (Optional)</div>
-                <input type="file" id="pdfFile" accept=".pdf">
-                <button id="extractPdfBtn" class="button btn-success" style="margin:0; background-color:var(--success-color);">⚡ PDF မှ စာသားများကို ဆွဲထုတ်မည်</button>
-                <div id="pdfStatus"></div>
+        <!-- 📝 BOOK META INPUTS -->
+        <div class="space-y-4 mb-6">
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1.5">စာအုပ်အမည် (Book Title)</label>
+                <input type="text" id="book-title" oninput="saveCurrentBookState()" placeholder="သူမ... ဖြစ်တည်မှု အပိုင်းအစများ" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3.5 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition shadow-inner">
             </div>
-
-            <div class="form-group">
-                <label>အခန်းခေါင်းစဉ် (Chapter Title)</label>
-                <input type="text" id="chapterTitle" placeholder="Chapter Title">
-                <button id="clearContentBtn" class="button btn-danger">🧹 စာသားအားလုံးဖျက်ရန် (Clear All Content)</button>
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1.5">စာရေးဆရာ (Author)</label>
+                <input type="text" id="author" oninput="saveCurrentBookState()" placeholder="သဘောတရား ဆရာလေးတစ်ရွာ" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3.5 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition shadow-inner">
             </div>
-
-            <div class="form-group" style="flex:1; display:flex; flex-direction:column;">
-                <label>အခန်းတွင်းစာသား (Chapter Content)</label>
-                <div id="editor-container"></div>
+            
+            <!-- 🖼️ COVER IMAGE UPLOAD -->
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1.5">မျက်နှာဖုံးပုံ (Cover Image)</label>
+                <div class="flex items-center gap-3 bg-slate-800 border border-slate-700 rounded-lg p-2">
+                    <label class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-md cursor-pointer text-sm font-medium border border-slate-600 transition active:scale-95">
+                        Choose File
+                        <input type="file" id="cover-upload" accept="image/*" onchange="handleCoverUpload(event)" class="hidden">
+                    </label>
+                    <span id="cover-status" class="text-sm text-slate-400 truncate">No file selected</span>
+                </div>
+                <div id="cover-preview-box" class="mt-2 hidden">
+                    <img id="cover-preview" src="" class="w-24 h-auto rounded border border-slate-600 shadow-md">
+                </div>
             </div>
-
-            <button id="downloadEpub" class="button btn-success">📦 ePub ဖိုင် ထုတ်ယူမည်</button>
         </div>
+
+        <!-- 📑 CHAPTERS MANAGEMENT -->
+        <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 mb-6">
+            <label class="block text-sm font-medium text-slate-400 mb-3">အခန်းများ (Chapters)</label>
+            <button onclick="addNewChapter()" class="w-full bg-sky-600 hover:bg-sky-500 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-1.5 transition active:scale-95 mb-3 shadow-lg shadow-sky-950/20">
+                <i class="fa-solid fa-plus"></i> အခန်းတိုးမည် (Add Chapter)
+            </button>
+            <div id="chapters-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- ✍️ EDITOR SECTION -->
+        <div id="editor-section" class="space-y-4 hidden">
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1.5">အခန်းခေါင်းစဉ် (Chapter Title)</label>
+                <input type="text" id="chapter-title" oninput="updateChapterTitle()" placeholder="အခန်းခေါင်းစဉ် ရိုက်ပါ..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3.5 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition shadow-inner">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1.5">အခန်းတွင်းစာသား (Chapter Content)</label>
+                <textarea id="editor"></textarea>
+            </div>
+        </div>
+
+        <!-- 🚀 DOWNLOAD BUTTON -->
+        <div class="mt-6">
+            <button onclick="generateEPUB()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-4 rounded-xl flex items-center justify-center gap-2 text-lg shadow-lg shadow-amber-950/30 transition active:scale-98">
+                <i class="fa-solid fa-download text-xl"></i> ePub ဖိုင် ထုတ်ယူမည်
+            </button>
+        </div>
+
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-
     <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        let bookChapters = [];
+        let currentChapterIndex = 0;
+        let coverBase64 = "";
 
-        const quill = new Quill('#editor-container', {
-            theme: 'snow',
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['image', 'clean']
-                ]
-            }
-        });
+        const DB_NAME = 'WebEpubCreatorDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'bookState';
 
-        let chapters = [];
-        let currentChapterId = null;
-        let db = null;
-
-        const modeToggle = document.getElementById('modeToggle');
-        modeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            modeToggle.innerText = document.body.classList.contains('dark-mode') ? "Light Mode" : "Dark Mode";
-        });
-
-        // INDEXEDDB ADVANCED LARGE STORAGE ENGINE (UNLIMITED STORAGE)
-        const dbName = "ePubCreatorDatabase";
-        const storeName = "bookStore";
-        const dbRequest = indexedDB.open(dbName, 1);
-
-        dbRequest.onupgradeneeded = function(e) {
-            let activeDb = e.target.result;
-            if (!activeDb.objectStoreNames.contains(storeName)) {
-                activeDb.createObjectStore(storeName, { keyPath: "id" });
-            }
-        };
-
-        dbRequest.onsuccess = function(e) {
-            db = e.target.result;
-            loadFromDatabase(); // Auto load data as soon as database is ready
-        };
-
-        dbRequest.onerror = function(e) {
-            console.error("Database connection failed", e);
-        };
-
-        function autoSaveToDatabase() {
-            if (!db) return;
-            saveCurrentChapterState();
-            
-            const saveData = {
-                id: "current_book",
-                title: document.getElementById('bookTitle').value.trim(),
-                author: document.getElementById('bookAuthor').value.trim(),
-                chapters: chapters,
-                currentChapterId: currentChapterId
-            };
-
-            const transaction = db.transaction([storeName], "readwrite");
-            const store = transaction.objectStore(storeName);
-            store.put(saveData);
-        }
-
-        function loadFromDatabase() {
-            if (!db) return;
-            const transaction = db.transaction([storeName], "readonly");
-            const store = transaction.objectStore(storeName);
-            const request = store.get("current_book");
-
-            request.onsuccess = function(e) {
-                const data = e.target.result;
-                if (data) {
-                    document.getElementById('bookTitle').value = data.title || '';
-                    document.getElementById('bookAuthor').value = data.author || '';
-                    chapters = data.chapters || [];
-                    currentChapterId = data.currentChapterId || null;
-                    
-                    renderChapters();
-                    if (currentChapterId !== null) {
-                        const ch = chapters.find(c => c.id === currentChapterId);
-                        if (ch) {
-                            document.getElementById('chapterTitle').value = ch.title;
-                            quill.root.innerHTML = ch.content;
-                        }
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME);
                     }
-                }
-            };
-        }
-
-        function renderChapters() {
-            const list = document.getElementById('chapter-list');
-            list.innerHTML = '';
-            chapters.forEach((ch, index) => {
-                const item = document.createElement('div');
-                item.className = 'chapter-item' + (ch.id === currentChapterId ? ' active' : '');
-                item.onclick = () => selectChapter(ch.id);
-
-                const titleSpan = document.createElement('span');
-                titleSpan.innerText = ch.title || `Chapter ${index + 1}`;
-                item.appendChild(titleSpan);
-
-                const delBtn = document.createElement('button');
-                delBtn.className = 'button btn-danger';
-                delBtn.innerText = '✕';
-                delBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    deleteChapter(ch.id);
                 };
-                item.appendChild(delBtn);
-                list.appendChild(item);
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e.target.error);
             });
         }
 
-        function selectChapter(id) {
-            saveCurrentChapterState();
-            currentChapterId = id;
-            const ch = chapters.find(c => c.id === id);
-            if (ch) {
-                document.getElementById('chapterTitle').value = ch.title;
-                quill.root.innerHTML = ch.content;
-            }
-            renderChapters();
-            autoSaveToDatabase();
-        }
+        // 🔥 TINYMCE INITIALIZATION WITH DIRECT NATIVE PICKER FIXED FOR SAFARI/IPHONE
+        tinymce.init({
+            selector: '#editor',
+            height: 350,
+            menubar: false,
+            skin: 'oxide-dark',
+            content_css: 'dark',
+            plugins: 'lists link charmap',
+            toolbar: 'bold italic underline | numlist bullist | custom_image link | removeformat',
+            
+            setup: function(editor) {
+                // 📱 iPhone/Safari တိုက်ရိုက်အလုပ်လုပ်မည့် Custom Image Button ကို ဖန်တီးခြင်း
+                editor.ui.registry.addButton('custom_image', {
+                    icon: 'image',
+                    tooltip: 'Insert Image From Gallery',
+                    onAction: function () {
+                        // ဖုန်းထဲက ပြခန်းကို တိုက်ရိုက်လှမ်းဖွင့်ခိုင်းခြင်း
+                        document.getElementById('hidden-editor-image-picker').click();
+                    }
+                });
 
-        function saveCurrentChapterState() {
-            if (currentChapterId !== null) {
-                const ch = chapters.find(c => c.id === currentChapterId);
-                if (ch) {
-                    ch.title = document.getElementById('chapterTitle').value.trim();
-                    ch.content = quill.root.innerHTML;
-                }
-            }
-        }
-
-        function deleteChapter(id) {
-            if(confirm("ဤအခန်းကို ဖျက်ရန် သေချာပါသလား?")) {
-                chapters = chapters.filter(c => c.id !== id);
-                if (currentChapterId === id) {
-                    currentChapterId = chapters.length > 0 ? chapters[0].id : null;
-                }
-                if (currentChapterId !== null) {
-                    const ch = chapters.find(c => c.id === currentChapterId);
-                    document.getElementById('chapterTitle').value = ch.title;
-                    quill.root.innerHTML = ch.content;
-                } else {
-                    document.getElementById('chapterTitle').value = '';
-                    quill.root.innerHTML = '';
-                }
-                renderChapters();
-                autoSaveToDatabase();
-            }
-        }
-
-        document.getElementById('addChapterBtn').addEventListener('click', () => {
-            saveCurrentChapterState();
-            const newId = Date.now().toString();
-            const newCh = { id: newId, title: 'အခန်းအသစ် ' + (chapters.length + 1), content: '' };
-            chapters.push(newCh);
-            currentChapterId = newId;
-            document.getElementById('chapterTitle').value = newCh.title;
-            quill.root.innerHTML = '';
-            renderChapters();
-            autoSaveToDatabase();
-        });
-
-        document.getElementById('clearContentBtn').addEventListener('click', () => {
-            if(confirm("ဤခန်းတွင်းရှိ สာသားအားလုံးကို ဖျက်ပစ်ရန် သေချာပါသလား?")) {
-                quill.root.innerHTML = '';
-                saveCurrentChapterState();
-                autoSaveToDatabase();
+                editor.on('NodeChange keyup change', function() {
+                    if (bookChapters[currentChapterIndex]) {
+                        bookChapters[currentChapterIndex].content = editor.getContent();
+                        saveCurrentBookState();
+                    }
+                });
             }
         });
 
-        document.getElementById('chapterTitle').addEventListener('input', () => {
-            if (currentChapterId !== null) {
-                const ch = chapters.find(c => c.id === currentChapterId);
-                if (ch) {
-                    ch.title = document.getElementById('chapterTitle').value.trim();
-                    const activeItem = document.querySelector('.chapter-item.active span');
-                    if(activeItem) activeItem.innerText = ch.title || 'Untitled Chapter';
+        // ဖုန်းပြခန်းထဲက ပုံကိုရွေးပြီးတာနဲ့ Editor ထဲ တန်းထည့်ပေးမည့် စနစ်
+        function handleInlineImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const base64Data = e.target.result;
+                
+                if (tinymce.activeEditor) {
+                    // Editor ထဲကို မူရင်း Base64 ပုံစံအတိုင်း ပုံရိပ်တိုက်ရိုက်ထည့်ပေးခြင်း
+                    tinymce.activeEditor.insertContent(`<img src="${base64Data}" alt="${file.name}" style="max-w-full; height:auto; display:block; margin:10px auto;"/>`);
+                    tinymce.activeEditor.fire('change');
                 }
-            }
-            autoSaveToDatabase();
-        });
-
-        // Monitor elements triggering auto-save
-        document.getElementById('bookTitle').addEventListener('input', autoSaveToDatabase);
-        document.getElementById('bookAuthor').addEventListener('input', autoSaveToDatabase);
-        
-        let debounceTimer;
-        quill.on('text-change', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                autoSaveToDatabase();
-            }, 500); // Save automatically 500ms after user stops typing
-        });
-
-        document.getElementById('backupBookBtn').addEventListener('click', () => {
-            saveCurrentChapterState();
-            const bookData = {
-                title: document.getElementById('bookTitle').value.trim() || 'My Novel',
-                author: document.getElementById('bookAuthor').value.trim() || 'Unknown Author',
-                chapters: chapters
+                // ရွေးချယ်ပြီးသား Input ဖိုင်ကို ဖျက်ပြီး နောက်တစ်ကြိမ်ထပ်ရွေးလို့ရအောင် လုပ်ခြင်း
+                document.getElementById('hidden-editor-image-picker').value = "";
             };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(bookData));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", (bookData.title.replace(/\s+/g, '_')) + "_backup.json");
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
+            reader.readAsDataURL(file);
+        }
+
+        // App Initial Load
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const db = await initDB();
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const getRequest = store.get('currentBook');
+
+                getRequest.onsuccess = function() {
+                    const savedData = getRequest.result;
+                    if (savedData) {
+                        document.getElementById('book-title').value = savedData.title || "";
+                        document.getElementById('author').value = savedData.author || "";
+                        bookChapters = savedData.chapters || [];
+                        currentChapterIndex = savedData.currentIndex || 0;
+                        coverBase64 = savedData.cover || "";
+
+                        if (coverBase64) {
+                            document.getElementById('cover-status').innerText = "Cover Loaded ✓";
+                            document.getElementById('cover-preview').src = coverBase64;
+                            document.getElementById('cover-preview-box').classList.remove('hidden');
+                        }
+                        
+                        renderChaptersList();
+                        if (bookChapters.length > 0) {
+                            selectChapter(currentChapterIndex);
+                        }
+                    }
+                };
+            } catch (err) {
+                console.error("DB Load Error:", err);
+            }
         });
 
-        document.getElementById('loadBackupFile').addEventListener('change', (e) => {
+        // Auto Save
+        async function saveCurrentBookState() {
+            try {
+                const db = await initDB();
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+
+                if (bookChapters[currentChapterIndex] && tinymce.activeEditor) {
+                    bookChapters[currentChapterIndex].content = tinymce.activeEditor.getContent();
+                }
+
+                const state = {
+                    title: document.getElementById('book-title').value,
+                    author: document.getElementById('author').value,
+                    cover: coverBase64,
+                    chapters: bookChapters,
+                    currentIndex: currentChapterIndex
+                };
+
+                store.put(state, 'currentBook');
+            } catch (error) {
+                console.error("Auto-save failed:", error);
+            }
+        }
+
+        // Cover Handler
+        function handleCoverUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
+
             const reader = new FileReader();
-            reader.onload = function(evt) {
-                try {
-                    const importedData = JSON.parse(evt.target.result);
-                    document.getElementById('bookTitle').value = importedData.title || '';
-                    document.getElementById('bookAuthor').value = importedData.author || '';
-                    chapters = importedData.chapters || [];
-                    currentChapterId = chapters.length > 0 ? chapters[0].id : null;
-                    if (currentChapterId !== null) {
-                        document.getElementById('chapterTitle').value = chapters[0].title;
-                        quill.root.innerHTML = chapters[0].content;
-                    } else {
-                        document.getElementById('chapterTitle').value = '';
-                        quill.root.innerHTML = '';
+            reader.onload = function(event) {
+                coverBase64 = event.target.result;
+                document.getElementById('cover-status').innerText = "Cover Loaded ✓";
+                document.getElementById('cover-preview').src = coverBase64;
+                document.getElementById('cover-preview-box').classList.remove('hidden');
+                saveCurrentBookState();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Chapters UI rendering
+        function renderChaptersList() {
+            const listContainer = document.getElementById('chapters-list');
+            listContainer.innerHTML = "";
+
+            bookChapters.forEach((chap, idx) => {
+                const div = document.createElement('div');
+                div.className = `flex justify-between items-center p-2.5 rounded-lg border transition text-sm cursor-pointer ${idx === currentChapterIndex ? 'bg-slate-700 border-sky-500 text-sky-300' : 'bg-slate-800/40 border-slate-700 text-slate-300 hover:bg-slate-700/50'}`;
+                div.setAttribute('onclick', `selectChapter(${idx})`);
+
+                div.innerHTML = `
+                    <span class="truncate font-medium flex items-center gap-2">
+                        <i class="fa-solid fa-file-lines opacity-60"></i> ${chap.title || `Untitled Chapter ${idx+1}`}
+                    </span>
+                    <button onclick="deleteChapter(${idx}, event)" class="text-slate-500 hover:text-rose-400 p-1 transition">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                listContainer.appendChild(div);
+            });
+        }
+
+        function addNewChapter() {
+            const newIndex = bookChapters.length + 1;
+            bookChapters.push({
+                title: `အခန်း (${newIndex})`,
+                content: ""
+            });
+            currentChapterIndex = bookChapters.length - 1;
+            renderChaptersList();
+            selectChapter(currentChapterIndex);
+            saveCurrentBookState();
+        }
+
+        function selectChapter(idx) {
+            if (idx < 0 || idx >= bookChapters.length) return;
+            currentChapterIndex = idx;
+            renderChaptersList();
+
+            document.getElementById('editor-section').classList.remove('hidden');
+            document.getElementById('chapter-title').value = bookChapters[idx].title;
+            
+            if (tinymce.activeEditor) {
+                tinymce.activeEditor.setContent(bookChapters[idx].content || "");
+            } else {
+                setTimeout(() => { tinymce.activeEditor.setContent(bookChapters[idx].content || ""); }, 300);
+            }
+        }
+
+        function updateChapterTitle() {
+            const titleVal = document.getElementById('chapter-title').value;
+            if (bookChapters[currentChapterIndex]) {
+                bookChapters[currentChapterIndex].title = titleVal;
+                renderChaptersList();
+                saveCurrentBookState();
+            }
+        }
+
+        function deleteChapter(idx, event) {
+            event.stopPropagation();
+            if (!confirm("ဒီအခန်းကို ဖျက်ပစ်ရန် သေချာပါသလား?")) return;
+
+            bookChapters.splice(idx, 1);
+            if (currentChapterIndex >= bookChapters.length) {
+                currentChapterIndex = Math.max(0, bookChapters.length - 1);
+            }
+
+            renderChaptersList();
+            if (bookChapters.length > 0) {
+                selectChapter(currentChapterIndex);
+            } else {
+                document.getElementById('editor-section').classList.add('hidden');
+            }
+            saveCurrentBookState();
+        }
+
+        // Reset Data
+        async function resetAllData() {
+            if (!confirm("⚠️ သတိပေးချက်: စာအုပ်ဒေတာအားလုံးကို ဖျက်ပစ်ပြီး အစက ပြန်စမှာ သေချာပါသလား?")) return;
+            try {
+                const db = await initDB();
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                await store.delete('currentBook');
+                alert("🗑️ ဒေတာဟောင်းများအားလုံးကို ရှင်းလင်းပြီးပါပြီ။");
+                location.reload();
+            } catch (err) {
+                alert("Reset ပြုလုပ်ရာတွင် အမှားအယွင်းရှိခဲ့ပါသည်");
+            }
+        }
+
+        // Export Backup JSON
+        async function exportToBackupFile() {
+            try {
+                await saveCurrentBookState();
+                const db = await initDB();
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const getRequest = store.get('currentBook');
+                
+                getRequest.onsuccess = function() {
+                    const state = getRequest.result;
+                    if (!state) {
+                        alert("⚠️  သိမ်းဆည်းထားသည့် ဒေတာမရှိသေးပါ။");
+                        return;
                     }
-                    renderChapters();
-                    autoSaveToDatabase();
-                    alert("စာအုပ် Backup ဒေတာများကို အောင်မြင်စွာ ပြန်လည်တင်သွင်းပြီးပါပြီ။");
-                } catch(err) {
-                    alert("ဖတ်မရပါ။ ကောင်းမွန်သော Backup JSON ဖိုင် ဖြစ်ပါစေ။");
+
+                    const jsonString = JSON.stringify(state);
+                    const blob = new Blob([jsonString], { type: "application/json" });
+                    const filename = (state.title || "My_Novel").replace(/\s+/g, '_') + "_backup.json";
+
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        const a = document.createElement('a');
+                        a.href = reader.result;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(() => { document.body.removeChild(a); }, 500);
+                    };
+                    reader.readAsDataURL(blob);
+                };
+            } catch (error) {
+                alert("Backup ဖိုင်ထုတ်ယူမှု မအောင်မြင်ပါ: " + error.message);
+            }
+        }
+
+        // Load Backup JSON
+        function loadFromBackupFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                try {
+                    const state = JSON.parse(event.target.result);
+                    const db = await initDB();
+                    const transaction = db.transaction([STORE_NAME], 'readwrite');
+                    const store = transaction.objectStore(STORE_NAME);
+                    await store.put(state, 'currentBook');
+                    
+                    alert("🎉 Backup ဒေတာများကို အောင်မြင်စွာ ထည့်သွင်းပြီးပါပြီ။");
+                    location.reload(); 
+                } catch (error) {
+                    alert("⚠️ Backup ဖိုင် ဖတ်၍မရပါ၊ ဖိုင်အမှန်ဖြစ်မဖြစ် ပြန်စစ်ပေးပါဗျာ။");
                 }
             };
             reader.readAsText(file);
-        });
+        }
 
-        document.getElementById('resetAppBtn').addEventListener('click', () => {
-            if(confirm("သေချာပါသလား? ဒေတာအားလုံး အစက ပြန်စပါမည်။")) {
-                if (db) {
-                    const transaction = db.transaction([storeName], "readwrite");
-                    const store = transaction.objectStore(storeName);
-                    store.delete("current_book");
-                }
-                document.getElementById('bookTitle').value = '';
-                document.getElementById('bookAuthor').value = '';
-                document.getElementById('coverImage').value = '';
-                document.getElementById('chapterTitle').value = '';
-                quill.root.innerHTML = '';
-                chapters = [];
-                currentChapterId = null;
-                renderChapters();
-            }
-        });
-
-        document.getElementById('extractPdfBtn').addEventListener('click', async () => {
-            const fileInput = document.getElementById('pdfFile');
-            const statusDiv = document.getElementById('pdfStatus');
-            if (!fileInput.files.length) {
-                alert("ကျေးဇူးပြု၍ PDF ဖိုင်တစ်ခု အရင်ရွေးချယ်ပေးပါ။");
-                return;
-            }
-            statusDiv.innerText = "စာသားများ ဆွဲထုတ်နေပါသည်၊ ခေတ္တစောင့်ဆိုင်းပေးပါ...";
-            statusDiv.style.color = "var(--warning-color)";
+        // Base64 to Blob Parser
+        function base64ToBlob(base64Str) {
+            if (!base64Str || typeof base64Str !== 'string') return null;
             
-            const file = fileInput.files[0];
-            const fileReader = new FileReader();
-            
-            fileReader.onload = async function() {
-                const typedarray = new Uint8Array(this.result);
-                try {
-                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
-                    let fullText = "";
-                    for (let i = 1; i <= pdf.numPages; i++) {
-                        const page = await pdf.getPage(i);
-                        const textContent = await page.getTextContent();
-                        const pageText = textContent.items.map(item => item.str).join(" ");
-                        fullText += pageText + "\n\n";
-                    }
-                    quill.root.innerHTML = quill.root.innerHTML + "<br><br>" + fullText.replace(/\n/g, '<br>');
-                    saveCurrentChapterState();
-                    autoSaveToDatabase();
-                    statusDiv.innerText = "PDF မှ စာသားများကို အောင်မြင်စွာ ထည့်သွင်းပြီးပါပြီ။";
-                    statusDiv.style.color = "var(--success-color)";
-                } catch (error) {
-                    console.error(error);
-                    statusDiv.innerText = "PDF ဖတ်ရာတွင် အမှားအယွင်းရှိပါသည်။";
-                    statusDiv.style.color = "var(--danger-color)";
-                }
-            };
-            fileReader.readAsArrayBuffer(file);
-        });
+            let contentType = "image/jpeg";
+            let rawData = base64Str;
 
-        async function convertImgToBlob(url) {
-            try {
-                const res = await fetch(url);
-                const blob = await res.blob();
-                return blob;
-            } catch (e) {
+            if (base64Str.startsWith('data:image')) {
+                const parts = base64Str.split(';base64,');
+                contentType = parts[0].split(':')[1];
+                rawData = parts[1];
+            } else {
                 return null;
+            }
+
+            try {
+                const raw = window.atob(rawData);
+                const rawLength = raw.length;
+                const uInt8Array = new Uint8Array(rawLength);
+
+                for (let i = 0; i < rawLength; ++i) {
+                    uInt8Array[i] = raw.charCodeAt(i);
+                }
+                return new Blob([uInt8Array], { type: contentType });
+            } catch (e) {
+                console.error("Conversion skip:", e);
+                return null; 
             }
         }
 
-        document.getElementById('downloadEpub').addEventListener('click', async () => {
-            saveCurrentChapterState();
-            if (chapters.length === 0) {
-                alert("ကျေးဇူးပြု၍ အခန်းအနည်းဆုံး တစ်ခန်း ထည့်သွင်းပေးပါ။");
+        // 🚀 CORE EPUB GENERATOR
+        async function generateEPUB() {
+            await saveCurrentBookState();
+            
+            const title = document.getElementById('book-title').value || "Untitled Book";
+            const author = document.getElementById('author').value || "Unknown Author";
+            
+            if(!bookChapters || bookChapters.length === 0) {
+                alert("⚠️ သတိပေးချက်: အခန်းမရှိသေးပါ။ '+ အခန်းတိုးမည်' ကို နှိပ်ပေးပါ။");
                 return;
             }
 
             const zip = new JSZip();
-            const bookTitle = document.getElementById('bookTitle').value.trim() || "My Novel";
-            const bookAuthor = document.getElementById('bookAuthor').value.trim() || "Unknown Author";
-
             zip.file("mimetype", "application/epub+zip", { compression: "STORE" });
+            
+            const containerXml = `<?xml version="1.0" encoding="UTF-8"?>
+            <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+                <rootfiles>
+                    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
+                </rootfiles>
+            </container>`;
+            zip.file("META-INF/container.xml", containerXml);
 
-            zip.folder("META-INF").file("container.xml", `<?xml version="1.0" encoding="UTF-8"?>
-<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
-    <rootfiles>
-        <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
-    </rootfiles>
-</container>`);
+            let manifestItems = "";
+            let spineItems = "";
+            let imageCounter = 1;
 
-            const oebps = zip.folder("OEBPS");
-            const imagesFolder = oebps.folder("images");
-
-            const coverInput = document.getElementById('coverImage');
-            let hasCover = false;
-            let coverMediaType = "";
-            let coverData = null;
-
-            if (coverInput.files.length > 0) {
-                const coverFile = coverInput.files[0];
-                hasCover = true;
-                coverMediaType = coverFile.type || "image/jpeg";
-                coverData = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.readAsArrayBuffer(coverFile);
-                });
-                oebps.file("cover" + getExtension(coverMediaType), coverData);
-            }
-
-            oebps.file("style.css", `body { font-family: sans-serif; padding: 5%; line-height: 1.5; } h1, h2 { text-align: center; color: #2c3e50; } p { margin-bottom: 1em; text-align: justify; } img { max-width: 100%; height: auto; display: block; margin: 10px auto; }`);
-
-            let totalImageCounter = 0;
-            let capturedImages = [];
-
-            for (let index = 0; index < chapters.length; index++) {
-                let ch = chapters[index];
-                let processedContent = (ch.content || "")
-                    .replace(/&nbsp;/g, ' ')
-                    .replace(/nbsp;/g, ' ')
-                    .replace(/nbsp/g, ' ');
+            for (let index = 0; index < bookChapters.length; index++) {
+                let chap = bookChapters[index];
+                let htmlString = chap.content || "";
+                htmlString = htmlString.replace(/&nbsp;/g, '&#160;');
 
                 const parser = new DOMParser();
-                const doc = parser.parseFromString(`<div>${processedContent}</div>`, 'text/html');
+                const doc = parser.parseFromString(`<div>${htmlString}</div>`, 'text/html');
+                const container = doc.body.firstChild;
 
-                const imgNodes = doc.getElementsByTagName('img');
-                for (let m = 0; m < imgNodes.length; m++) {
-                    let src = imgNodes[m].getAttribute('src');
-                    if (src) {
-                        totalImageCounter++;
-                        let imgId = `inline_img_${totalImageCounter}`;
-                        let ext = ".jpg";
-                        let mType = "image/jpeg";
+                // <br> Tags Fix
+                const brs = container.querySelectorAll('br');
+                brs.forEach(br => {
+                    const pBr = doc.createElement('p');
+                    pBr.innerHTML = '&#160;';
+                    br.replaceWith(pBr);
+                });
 
-                        if (src.startsWith('data:image/')) {
-                            const match = src.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
-                            if (match) {
-                                mType = match[1];
-                                ext = getExtension(mType);
-                                let base64Data = match[2];
-                                let binaryStr = atob(base64Data);
-                                let len = binaryStr.length;
-                                let bytes = new Uint8Array(len);
-                                for (let i = 0; i < len; i++) {
-                                    bytes[i] = binaryStr.charCodeAt(i);
-                                }
-                                imagesFolder.file(`${imgId}${ext}`, bytes.buffer);
-                                capturedImages.push({ id: imgId, href: `images/${imgId}${ext}`, type: mType });
-                                imgNodes[m].setAttribute('src', `images/${imgId}${ext}`);
-                            }
-                        } else if (src.startsWith('http')) {
-                            let blob = await convertImgToBlob(src);
-                            if (blob) {
-                                mType = blob.type || "image/jpeg";
-                                ext = getExtension(mType);
-                                let buffer = await blob.arrayBuffer();
-                                imagesFolder.file(`${imgId}${ext}`, buffer);
-                                capturedImages.push({ id: imgId, href: `images/${imgId}${ext}`, type: mType });
-                                imgNodes[m].setAttribute('src', `images/${imgId}${ext}`);
-                            }
+                // Images inside Chapter Handler
+                const imgs = container.querySelectorAll('img');
+                for (let img of imgs) {
+                    const src = img.getAttribute('src');
+                    
+                    if (src && src.startsWith('data:image')) {
+                        let ext = "jpg";
+                        let mediaType = "image/jpeg";
+                        if (src.includes("image/png")) { ext = "png"; mediaType = "image/png"; }
+                        else if (src.includes("image/gif")) { ext = "gif"; mediaType = "image/gif"; }
+
+                        const filename = `image_${imageCounter}.${ext}`;
+                        const imgBlob = base64ToBlob(src);
+                        
+                        if (imgBlob) {
+                            zip.file(`OEBPS/images/${filename}`, imgBlob);
+                            manifestItems += `<item id="img_${imageCounter}" href="images/${filename}" media-type="${mediaType}"/>\n`;
+                            img.setAttribute('src', `images/${filename}`);
+                            if (!img.getAttribute('alt')) img.setAttribute('alt', `photo_${imageCounter}`);
+                            imageCounter++;
+                        } else {
+                            img.remove();
                         }
                     }
                 }
-                
-                const brTags = doc.getElementsByTagName('br');
-                for (let i = brTags.length - 1; i >= 0; i--) {
-                    const xmlBr = doc.createElementNS("http://www.w3.org/1999/xhtml", "br");
-                    brTags[i].parentNode.replaceChild(xmlBr, brTags[i]);
-                }
 
                 const serializer = new XMLSerializer();
-                const strictXmlContent = serializer.serializeToString(doc.body.firstChild);
+                let finalizedXhtmlContent = serializer.serializeToString(container);
+                finalizedXhtmlContent = finalizedXhtmlContent.replace(/^<div[^>]*>/, '').replace(/<\/div>$/, '');
 
-                const chHtml = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-<head>
-    <title>${ch.title || 'Chapter'}</title>
-    <link rel="stylesheet" href="style.css" type="text/css"/>
-</head>
-<body>
-    <h2>${ch.title || 'Chapter ' + (index + 1)}</h2>
-    ${strictXmlContent}
-</body>
-</html>`;
-                oebps.file(`chapter_${index + 1}.xhtml`, chHtml);
+                const chapHtml = `<?xml version="1.0" encoding="utf-8"?>
+                <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+                <html xmlns="http://www.w3.org/1999/xhtml">
+                <head>
+                    <title>${chap.title}</title>
+                    <style>
+                        body { padding: 20px; font-family: sans-serif; line-height: 1.6; color: #111111; background-color: #ffffff; }
+                        img { max-width: 100%; height: auto; display: block; margin: 15px auto; border-radius: 6px; }
+                        h1 { font-size: 1.5em; text-align: center; margin-bottom: 20px; color: #1e2640; }
+                        p { margin-bottom: 0.8em; text-align: justify; line-height: 1.6; }
+                    </style>
+                </head>
+                <body>
+                    <h1>${chap.title}</h1>
+                    <div>${finalizedXhtmlContent}</div>
+                </body>
+                </html>`;
+                
+                zip.file(`OEBPS/chapter_${index + 1}.xhtml`, chapHtml);
+                manifestItems += `<item id="chap_${index + 1}" href="chapter_${index + 1}.xhtml" media-type="application/xhtml+xml"/>\n`;
+                spineItems += `<itemref idref="chap_${index + 1}"/>\n`;
             }
 
-            let manifestItems = `
-        <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
-        <item id="css" href="style.css" media-type="text/css"/>`;
-            let spineItems = "";
-
-            if (hasCover) {
-                manifestItems += `\n        <item id="cover-image" href="cover${getExtension(coverMediaType)}" media-type="${coverMediaType}"/>`;
+            // Cover Image Embedded
+            if (coverBase64) {
+                let coverExt = "jpg";
+                let coverMime = "image/jpeg";
+                if (coverBase64.includes("image/png")) { coverExt = "png"; coverMime = "image/png"; }
+                
+                const coverBlob = base64ToBlob(coverBase64);
+                if (coverBlob) {
+                    zip.file(`OEBPS/images/cover.${coverExt}`, coverBlob);
+                    manifestItems += `<item id="cover-img" href="images/cover.${coverExt}" media-type="${coverMime}"/>\n`;
+                }
             }
-
-            capturedImages.forEach(img => {
-                manifestItems += `\n        <item id="${img.id}" href="${img.href}" media-type="${img.type}"/>`;
-            });
-
-            chapters.forEach((ch, index) => {
-                manifestItems += `\n        <item id="ch_${index + 1}" href="chapter_${index + 1}.xhtml" media-type="application/xhtml+xml"/>`;
-                spineItems += `\n        <itemref idref="ch_${index + 1}"/>`;
-            });
 
             const opfXml = `<?xml version="1.0" encoding="UTF-8"?>
-<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="2.0">
-    <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
-        <dc:title>${bookTitle}</dc:title>
-        <dc:creator opf:role="aut">${bookAuthor}</dc:creator>
-        <dc:identifier id="bookid">urn:uuid:${Date.now()}</dc:identifier>
-        <dc:language>en</dc:language>
-        ${hasCover ? '<meta name="cover" content="cover-image"/>' : ''}
-    </metadata>
-    <manifest>${manifestItems}
-    </manifest>
-    <spine toc="ncx">${spineItems}
-    </spine>
-</package>`;
-            oebps.file("content.opf", opfXml);
+            <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="2.0">
+                <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+                    <dc:title>${title}</dc:title>
+                    <dc:creator opf:role="aut">${author}</dc:creator>
+                    <dc:language>my</dc:language>
+                    <dc:identifier id="bookid">urn:uuid:${Date.now()}</dc:identifier>
+                     ${coverBase64 ? '<meta name="cover" content="cover-img"/>' : ''}
+                </metadata>
+                <manifest>
+                    <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+                    ${manifestItems}
+                </manifest>
+                <spine toc="ncx">
+                    ${spineItems}
+                </spine>
+            </package>`;
+            zip.file("OEBPS/content.opf", opfXml);
 
-            let navPoints = "";
-            chapters.forEach((ch, index) => {
-                navPoints += `
-        <navPoint id="nav_${index + 1}" playOrder="${index + 1}">
-            <navLabel><text>${ch.title || 'Chapter ' + (index + 1)}</text></navLabel>
-            <content src="chapter_${index + 1}.xhtml"/>
-        </navPoint>`;
+            let ncxNav = "";
+            bookChapters.forEach((chap, index) => {
+                ncxNav += `<navPoint id="nav_${index + 1}" playOrder="${index + 1}">
+                    <navLabel><text>${chap.title}</text></navLabel>
+                    <content src="chapter_${index + 1}.xhtml"/>
+                </navPoint>\n`;
             });
 
             const ncxXml = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE ncx PUBLIC "-//NISO//DTD NCX 2005-1//EN" "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
-<ncx xmlns="http://www.daisy.org/z3986/2005/ncx--" version="2005-1">
-    <head>
-        <meta name="dtb:uid" content="urn:uuid:id_here"/>
-        <meta name="dtb:depth" content="1"/>
-        <meta name="dtb:totalPageCount" content="0"/>
-        <meta name="dtb:maxPageNumber" content="0"/>
-    </head>
-    <docTitle><text>${bookTitle}</text></docTitle>
-    <navMap>${navPoints}
-    </navMap>
-</ncx>`;
-            oebps.file("toc.ncx", ncxXml);
+            <!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx v2005-1//EN" "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
+            <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+                <head>
+                    <meta name="dtb:uid" content="urn:uuid:${Date.now()}"/>
+                    <meta name="dtb:depth" content="1"/>
+                </head>
+                <docTitle><text>${title}</text></docTitle>
+                <navMap>${ncxNav}</navMap>
+            </ncx>`;
+            zip.file("OEBPS/toc.ncx", ncxXml);
 
-            zip.generateAsync({ type: "blob" }).then((content) => {
-                const a = document.createElement("a");
-                a.href = URL.createObjectURL(content);
-                a.download = `${bookTitle.replace(/\s+/g, '_')}.epub`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+            zip.generateAsync({ type: "blob", mimeType: "application/epub+zip" }).then(function (blob) {
+                const filename = title.replace(/\s+/g, '_') + ".epub";
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    const a = document.createElement('a');
+                    a.href = reader.result;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => { document.body.removeChild(a); }, 500);
+                };
+                reader.readAsDataURL(blob);
+            }).catch(function (err) {
+                alert("ePub Error: " + err.message);
             });
-        });
-
-        function getExtension(mimeType) {
-            if (mimeType === "image/png") return ".png";
-            if (mimeType === "image/gif") return ".gif";
-            if (mimeType === "image/webp") return ".webp";
-            return ".jpg";
         }
     </script>
 </body>
