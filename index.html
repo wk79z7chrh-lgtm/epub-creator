@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Editor အတွက် လိုအပ်သော Style များ */
         .editor-toolbar {
             display: flex;
             gap: 10px;
@@ -45,7 +44,6 @@
             font-family: inherit;
             line-height: 1.6;
         }
-        /* စာရေးခန်းထဲက ပုံများကို ညီညာလှပစေရန် */
         .rich-editor img {
             max-width: 100%;
             height: auto;
@@ -128,7 +126,6 @@
         </div>
     </div>
 
-    <!-- JSZip Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <script>
@@ -228,89 +225,125 @@
             const chaptersContainer = document.getElementById('chapters-container');
             let chapterCount = 0;
 
-            if(addChapterBtn) {
-                addChapterBtn.addEventListener('click', () => {
-                    chapterCount++;
-                    const chapterCard = document.createElement('div');
-                    chapterCard.className = "card chapter-card-item";
-                    chapterCard.style.cssText = "padding: 15px; margin-bottom: 15px; background-color: var(--card-bg); border: 1px solid var(--input-border); border-radius: 12px;";
+            // အခန်းအသစ်တစ်ခု ဖန်တီးပေးသည့် Function
+            function createChapterInstance(titleValue = '', contentHtml = '') {
+                chapterCount++;
+                const chapterCard = document.createElement('div');
+                chapterCard.className = "card chapter-card-item";
+                chapterCard.style.cssText = "padding: 15px; margin-bottom: 15px; background-color: var(--card-bg); border: 1px solid var(--input-border); border-radius: 12px;";
+                
+                chapterCard.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span class="chapter-number-label" style="font-weight: bold; font-size: 14px; color: #f1c40f;">Chapter ${chapterCount}</span>
+                        <button class="btn-delete-chapter" style="background: #c0392b; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+                    </div>
                     
-                    chapterCard.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <span style="font-weight: bold; font-size: 14px; color: #f1c40f;">Chapter ${chapterCount}</span>
-                            <button class="btn-delete-chapter" style="background: #c0392b; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                        
-                        <input type="text" class="ch-title-input" placeholder="${translations[currentLang].chapter_placeholder}" style="width: 100%; padding: 10px; margin-bottom: 10px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-color);">
-                        
-                        <div class="editor-toolbar">
-                            <button type="button" class="editor-btn format-bold" title="Bold"><i class="fa-solid fa-bold"></i></button>
-                            <button type="button" class="editor-btn format-italic" title="Italic"><i class="fa-solid fa-italic"></i></button>
-                            <button type="button" class="editor-btn format-underline" title="Underline"><i class="fa-solid fa-underline"></i></button>
-                            <span style="color: #2c3a59;">|</span>
-                            <button type="button" class="editor-btn insert-image-btn" title="Insert Multiple Images"><i class="fa-regular fa-image"></i></button>
-                            <!-- multiple attribute ထည့်ထားသဖြင့် ပုံအများကြီးပြိုင်တူရွေးနိုင်သည် -->
-                            <input type="file" class="editor-file-hidden" accept="image/*" multiple style="display: none;">
-                        </div>
-
-                        <div class="rich-editor ch-content-editor" contenteditable="true" placeholder="${translations[currentLang].content_placeholder}"></div>
-                    `;
+                    <input type="text" class="ch-title-input" value="${titleValue}" placeholder="${translations[currentLang].chapter_placeholder}" style="width: 100%; padding: 10px; margin-bottom: 10px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-color);">
                     
-                    chaptersContainer.appendChild(chapterCard);
+                    <div class="editor-toolbar">
+                        <button type="button" class="editor-btn format-bold" title="Bold"><i class="fa-solid fa-bold"></i></button>
+                        <button type="button" class="editor-btn format-italic" title="Italic"><i class="fa-solid fa-italic"></i></button>
+                        <button type="button" class="editor-btn format-underline" title="Underline"><i class="fa-solid fa-underline"></i></button>
+                        <span style="color: #2c3a59;">|</span>
+                        <button type="button" class="editor-btn insert-image-btn" title="Insert Multiple Images"><i class="fa-regular fa-image"></i></button>
+                        <input type="file" class="editor-file-hidden" accept="image/*" multiple style="display: none;">
+                    </div>
 
-                    const richEditor = chapterCard.querySelector('.ch-content-editor');
-                    const fileHidden = chapterCard.querySelector('.editor-file-hidden');
-                    const imgBtn = chapterCard.querySelector('.insert-image-btn');
+                    <div class="rich-editor ch-content-editor" contenteditable="true" placeholder="${translations[currentLang].content_placeholder}">${contentHtml}</div>
+                `;
+                
+                chaptersContainer.appendChild(chapterCard);
 
-                    chapterCard.querySelector('.format-bold').addEventListener('click', () => { document.execCommand('bold', false, null); richEditor.focus(); });
-                    chapterCard.querySelector('.format-italic').addEventListener('click', () => { document.execCommand('italic', false, null); richEditor.focus(); });
-                    chapterCard.querySelector('.format-underline').addEventListener('click', () => { document.execCommand('underline', false, null); richEditor.focus(); });
+                const richEditor = chapterCard.querySelector('.ch-content-editor');
+                const fileHidden = chapterCard.querySelector('.editor-file-hidden');
+                const imgBtn = chapterCard.querySelector('.insert-image-btn');
 
-                    imgBtn.addEventListener('click', () => fileHidden.click());
-                    
-                    // ပုံအများကြီးကို ကွင်းဆက် (Loop) ပတ်ပြီး တစ်ခါတည်း အကုန်သွင်းပေးမည့်စနစ်
-                    fileHidden.addEventListener('change', async () => {
-                        if (fileHidden.files && fileHidden.files.length > 0) {
-                            richEditor.focus();
-                            
-                            for (let i = 0; i < fileHidden.files.length; i++) {
-                                const file = fileHidden.files[i];
-                                await new Promise((resolve) => {
-                                    const reader = new FileReader();
-                                    reader.onload = (e) => {
-                                        document.execCommand('insertImage', false, e.target.result);
-                                        resolve();
-                                    };
-                                    reader.readAsDataURL(file);
-                                });
-                            }
-                            // ရွေးပြီးသွားရင် input ကို reset ပြန်လုပ်ပေးခြင်း
-                            fileHidden.value = '';
+                chapterCard.querySelector('.format-bold').addEventListener('click', () => { document.execCommand('bold', false, null); richEditor.focus(); });
+                chapterCard.querySelector('.format-italic').addEventListener('click', () => { document.execCommand('italic', false, null); richEditor.focus(); });
+                chapterCard.querySelector('.format-underline').addEventListener('click', () => { document.execCommand('underline', false, null); richEditor.focus(); });
+
+                imgBtn.addEventListener('click', () => fileHidden.click());
+                
+                fileHidden.addEventListener('change', async () => {
+                    if (fileHidden.files && fileHidden.files.length > 0) {
+                        richEditor.focus();
+                        for (let i = 0; i < fileHidden.files.length; i++) {
+                            const file = fileHidden.files[i];
+                            await new Promise((resolve) => {
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                    document.execCommand('insertImage', false, e.target.result);
+                                    resolve();
+                                };
+                                reader.readAsDataURL(file);
+                            });
                         }
-                    });
-
-                    chapterCard.querySelector('.btn-delete-chapter').addEventListener('click', () => {
-                        chapterCard.remove();
-                    });
+                        fileHidden.value = '';
+                    }
                 });
+
+                chapterCard.querySelector('.btn-delete-chapter').addEventListener('click', () => {
+                    chapterCard.remove();
+                    reindexChapters();
+                });
+            }
+
+            // အခန်းများကို နံပါတ်ပြန်စဉ်ပေးသည့် စနစ်
+            function reindexChapters() {
+                chapterCount = 0;
+                document.querySelectorAll('.chapter-card-item').forEach((card) => {
+                    chapterCount++;
+                    card.querySelector('.chapter-number-label').innerText = `Chapter ${chapterCount}`;
+                });
+            }
+
+            if(addChapterBtn) {
+                addChapterBtn.addEventListener('click', () => createChapterInstance('', ''));
             }
 
             const bookTitleInput = document.getElementById('book-title');
             const bookAuthorInput = document.getElementById('book-author');
 
+            // ၁။ အဆင့်မြင့် စာအုပ် Backup စနစ် (ပုံရော၊ အခန်းများပါ အကုန်သိမ်းမည်)
             document.getElementById('main-btn-backup').addEventListener('click', () => {
-                const bookData = { title: bookTitleInput.value, author: bookAuthorInput.value };
-                localStorage.setItem('epub_book_backup', JSON.stringify(bookData));
-                alert(currentLang === 'my' ? "စာအုပ်အချက်အလက်များကို Backup သိမ်းဆည်းပြီးပါပြီ။" : "Book data successfully backed up!");
+                const chaptersData = [];
+                document.querySelectorAll('.chapter-card-item').forEach((card) => {
+                    const chTitle = card.querySelector('.ch-title-input').value;
+                    const chHtml = card.querySelector('.ch-content-editor').innerHTML;
+                    chaptersData.push({ title: chTitle, content: chHtml });
+                });
+
+                const fullBookData = {
+                    title: bookTitleInput.value,
+                    author: bookAuthorInput.value,
+                    chapters: chaptersData
+                };
+
+                localStorage.setItem('epub_book_pro_backup', JSON.stringify(fullBookData));
+                alert(currentLang === 'my' ? "စာသားနှင့် ဓာတ်ပုံများအပါအဝင် စာအုပ်တစ်ခုလုံးကို Backup အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။" : "Full book data (including text & images) successfully backed up!");
             });
 
+            // ၂။ စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup) စနစ်
             document.getElementById('main-btn-load').addEventListener('click', () => {
-                const savedData = localStorage.getItem('epub_book_backup');
+                const savedData = localStorage.getItem('epub_book_pro_backup');
                 if (savedData) {
                     const bookData = JSON.parse(savedData);
-                    bookTitleInput.value = bookData.title;
-                    bookAuthorInput.value = bookData.author;
-                    alert(currentLang === 'my' ? "Backup ဖိုင်ကို ပြန်တင်ပြီးပါပြီ။" : "Backup loaded successfully!");
+                    
+                    // ခေါင်းစဉ်နှင့် စာရေးဆရာကို ထည့်သွင်းခြင်း
+                    bookTitleInput.value = bookData.title || '';
+                    bookAuthorInput.value = bookData.author || '';
+                    
+                    // ရှိပြီးသား အခန်းဟောင်းများကို အကုန်ဖျက်ပစ်ခြင်း
+                    chaptersContainer.innerHTML = '';
+                    chapterCount = 0;
+
+                    // Backup ထဲက အခန်းများကို ပုံရောစာပါ ပြန်လည် တည်ဆောက်ခြင်း
+                    if(bookData.chapters && bookData.chapters.length > 0) {
+                        bookData.chapters.forEach(ch => {
+                            createChapterInstance(ch.title, ch.content);
+                        });
+                    }
+                    alert(currentLang === 'my' ? "သိမ်းဆည်းထားသော စာအုပ်ဖောင်းတစ်ခုလုံး (ပုံနှင့်စာသားများ) ကို ပြန်တင်ပြီးပါပြီ။" : "Full backup loaded successfully!");
                 } else {
                     alert(currentLang === 'my' ? "ပြန်တင်ရန် သိမ်းဆည်းထားသော Backup မရှိသေးပါ။" : "No saved backup found!");
                 }
@@ -324,6 +357,7 @@
                 }
             });
 
+            // Download ePub စနစ်
             document.getElementById('btn-download-epub').addEventListener('click', async () => {
                 const title = bookTitleInput.value.trim() || "Untitled Book";
                 const author = bookAuthorInput.value.trim() || "Unknown Author";
