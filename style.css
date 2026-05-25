@@ -1,205 +1,123 @@
-:root {
-    --bg-color: #f4f6f9;
-    --card-bg: #ffffff;
-    --primary-color: #059669; /* ခရမ်းရောင်မှ လှပသော အစိမ်းရောင်သို့ ပြောင်းလဲထားပါသည် */
-    --primary-hover: #047857;
-    --text-color: #1f2937;
-    --text-muted: #6b7280;
-    --border-color: #e5e7eb;
-    --active-color: #d1fae5; /* Active ဖြစ်ချိန် အစိမ်းနုရောင်အဝါး */
-    --input-bg: #ffffff;
-    --item-bg: #f9fafb;
-}
-
-[data-theme="dark"] {
-    --bg-color: #111827;
-    --card-bg: #1f2937;
-    --text-color: #f3f4f6;
-    --text-muted: #9ca3af;
-    --border-color: #374151;
-    --active-color: #064e3b;
-    --input-bg: #374151;
-    --item-bg: #111827;
-}
-
+/* ပုံသေ သတ်မှတ်ချက်များ */
 * {
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    /* မြန်မာယူနီကုဒ် Fonts များ စနစ်တကျ သတ်မှတ်ခြင်း */
-    font-family: 'Pyidaungsu', 'Noto Sans Myanmar', 'Inter', sans-serif;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* --- Dark Theme (ညမုဒ်) အရောင်များ --- */
+[data-theme="dark"] {
+    --bg-color: #0c101b;
+    --card-bg: #141b2d;
+    --text-color: #ffffff;
+    --text-muted: #8fa0bc;
+    --input-bg: #1b243c;
+    --input-border: #2c3a59;
+    --btn-blue: #2d68c4;
+}
+
+/* --- Light Theme (နေ့မုဒ်) အရောင်များ --- */
+[data-theme="light"] {
+    --bg-color: #f4f6f9;
+    --card-bg: #ffffff;
+    --text-color: #1a1a1a;
+    --text-muted: #666666;
+    --input-bg: #ffffff;
+    --input-border: #cccccc;
+    --btn-blue: #007bff;
+}
+
+/* UI တည်ဆောက်မှုပုံစံ */
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+    display: flex;
+    justify-content: center;
     padding: 20px;
 }
 
 .app-container {
-    max-width: 1200px;
-    margin: 0 auto;
+    width: 100%;
+    max-width: 480px; /* ဖုန်း Screen ပုံစံ ညှပ်ထားပါတယ် */
 }
 
-.app-header {
-    text-align: center;
-    margin-bottom: 25px;
-}
-
-.header-main {
+/* Header */
+header {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    gap: 20px;
-    position: relative;
+    padding: 15px 0;
 }
 
-.app-header h1 {
-    color: var(--primary-color);
-    font-size: 2.3rem;
-    margin-bottom: 5px;
-}
-
-.app-header p {
-    color: var(--text-muted);
-}
-
-.theme-toggle-btn {
-    background: var(--card-bg);
-    color: var(--primary-color);
-    border: 1px solid var(--border-color);
-    padding: 10px 14px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1.2rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.theme-toggle-btn:hover {
-    background: var(--bg-color);
-}
-
-.main-content {
-    display: grid;
-    grid-template-columns: 360px 1fr;
-    gap: 20px;
-}
-
-@media (max-width: 768px) {
-    .main-content {
-        grid-template-columns: 1fr;
-    }
-}
-
-.sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.card {
-    background-color: var(--card-bg);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--border-color);
-}
-
-h3 {
-    font-size: 1.1rem;
-    color: var(--text-color);
+.logo {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.input-group {
-    margin-bottom: 15px;
+.logo-icon {
+    color: #f1c40f;
+    font-size: 24px;
 }
 
-.input-group label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 500;
-    font-size: 0.85rem;
-    color: var(--text-color);
+.logo-text {
+    font-size: 20px;
+    font-weight: bold;
+    color: #f1c40f;
 }
 
-.input-group input {
-    width: 100%;
-    padding: 10px;
-    background-color: var(--input-bg);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
+.controls {
+    display: flex;
+    gap: 10px;
+}
+
+.control-btn {
+    background: #1b243c;
+    color: #f1c40f;
+    border: 1px solid #2c3a59;
+    padding: 8px 12px;
     border-radius: 8px;
-    font-size: 0.95rem;
-}
-
-.input-group input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
-.input-group input[type="file"] {
-    padding: 6px;
     cursor: pointer;
+    font-weight: bold;
 }
 
-.chapter-header {
+/* User Info */
+.user-info {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
-.btn-sm {
-    background-color: var(--primary-color);
+.user-email {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.badge-premium {
+    background: #e67e22;
     color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    font-size: 0.85rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
 }
 
-.btn-sm:hover {
-    background-color: var(--primary-hover);
+/* Cards & Buttons */
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
 }
 
-.chapter-list {
-    max-height: 200px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.chapter-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background: var(--item-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.9rem;
-}
-
-.chapter-item.active {
-    background-color: var(--active-color);
-    border-color: var(--primary-color);
-    font-weight: 600;
-}
-
-.chapter-item .delete-ch-btn {
-    color: #ef4444;
-    border: none;
-    background: none;
-    cursor: pointer;
-    padding: 2px 6px;
+.card h3 {
+    font-size: 14px;
+    color: #f39c12;
+    margin-bottom: 15px;
 }
 
 .btn {
@@ -207,67 +125,87 @@ h3 {
     padding: 12px;
     border: none;
     border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+.btn-green { background-color: #27ae60; }
+.btn-blue { background-color: var(--btn-blue); }
+.btn-red { background-color: #c0392b; }
+
+/* Input Boxes */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-size: 14px;
+}
+
+/* File Input Custom */
+.file-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.btn-file {
+    background-color: #34495e;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.file-name {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* Add Chapter Button */
+.chapters-section label {
+    display: block;
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.btn-add-chapter {
+    width: 100%;
+    padding: 15px;
+    background-color: var(--btn-blue);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 15px;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 10px;
-}
-
-.btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: var(--primary-hover);
-}
-
-.editor-area {
-    display: flex;
-    flex-direction: column;
-    min-height: 520px;
-}
-
-.editor-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-#editor-container {
-    flex-grow: 1;
-    height: 350px;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    font-size: 1.05rem;
-    background-color: var(--input-bg);
-    color: var(--text-color);
-    border-color: var(--border-color);
-}
-
-.ql-toolbar.ql-snow {
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    border-color: var(--border-color);
-    background-color: var(--item-bg);
-}
-
-.ql-snow .ql-stroke {
-    stroke: var(--text-color) !important;
-}
-
-.ql-snow .ql-fill {
-    fill: var(--text-color) !important;
-}
-
-.ql-snow .ql-picker {
-    color: var(--text-color) !important;
-}
-
-.ql-snow .ql-picker-options {
-    background-color: var(--card-bg) !important;
-    border-color: var(--border-color) !important;
 }
