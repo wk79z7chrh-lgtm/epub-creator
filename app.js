@@ -1,7 +1,6 @@
-// HTML တစ်ခုလုံး Load ဖြစ်ပြီးမှ JavaScript အလုပ်လုပ်စေရန်
 document.addEventListener("DOMContentLoaded", () => {
     
-    // ဘာသာစကား စာသားများ သတ်မှတ်ချက်
+    // ဘာသာစကား စာသားများစွယ်စုံ
     const translations = {
         my: {
             backup_title: "စာအုပ် BACKUP စီမံခန့်ခွဲမှု",
@@ -35,10 +34,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const langToggle = document.getElementById('lang-toggle');
     const htmlEl = document.documentElement;
 
-    // ပုံထဲမှာ English ပြနေတဲ့အတွက် Default ကို 'en' လို့ ပေးထားလိုက်ပါမယ်
-    let currentLang = 'en'; 
+    // အစပိုင်းမှာ မြန်မာလို ပြထားချင်ရင် 'my' လို့ ထားပါ
+    let currentLang = 'my'; 
 
-    // ၁။ Night Mode Toggle အလုပ်လုပ်ပုံ
+    // ၁။ Night Mode (Dark/Light) ခလုတ် နှိပ်ရင် အလုပ်လုပ်မည့်အပိုင်း
     if (themeToggle) {
         themeToggle.addEventListener('click', () => {
             const currentTheme = htmlEl.getAttribute('data-theme');
@@ -52,21 +51,27 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // ၂။ ဘာသာစကားပြောင်းလဲခြင်း အလုပ်လုပ်ပုံ
+    // ၂။ ဘာသာစကား (မြန်မာ / English) ပြောင်းလဲမည့်အပိုင်း
     if (langToggle) {
         langToggle.addEventListener('click', () => {
+            // လက်ရှိ ဘာသာစကားကို ပြောင်းလဲခြင်း
             currentLang = currentLang === 'my' ? 'en' : 'my';
             
-            // ခလုတ်ပေါ်က စာသားကို လိုက်ပြောင်းပေးခြင်း
+            // ညာဘက်အပေါ်က ခလုတ်ရဲ့ စာသားကို ပြောင်းလဲခြင်း
             langToggle.innerText = currentLang === 'my' ? 'EN' : 'မြန်မာ';
             
-            // စာသားအားလုံးကို လိုက်ပြောင်းပေးခြင်း
-            document.querySelectorAll('[data-lang]').forEach(element => {
-                const key = element.getAttribute('data-lang');
-                if (translations[currentLang] && translations[currentLang][key]) {
-                    element.innerText = translations[currentLang][key];
-                }
-            });
+            // စာသားတစ်ခုချင်းစီကို ID အလိုက် လိုက်လံလဲလှယ်ပေးခြင်း
+            document.getElementById('backup-title').innerText = translations[currentLang].backup_title;
+            document.getElementById('btn-backup').innerText = translations[currentLang].btn_backup;
+            document.getElementById('btn-load').innerText = translations[currentLang].btn_load;
+            document.getElementById('btn-reset').innerText = translations[currentLang].btn_reset;
+            document.getElementById('label-title').innerText = translations[currentLang].label_title;
+            document.getElementById('label-author').innerText = translations[currentLang].label_author;
+            document.getElementById('label-cover').innerText = translations[currentLang].label_cover;
+            document.getElementById('btn-choose').innerText = translations[currentLang].btn_choose;
+            document.getElementById('no-file').innerText = translations[currentLang].no_file;
+            document.getElementById('label-chapters').innerText = translations[currentLang].label_chapters;
+            document.getElementById('btn-add-chapter').innerText = translations[currentLang].btn_add_chapter;
         });
     }
 });
