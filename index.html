@@ -59,12 +59,17 @@
             </div>
         </div>
 
-        <div class="chapters-section">
+        <div class="chapters-section" style="margin-bottom: 25px;">
             <label id="label-chapters">အခန်းများ (Chapters)</label>
-            
             <div id="chapters-container" style="margin-bottom: 15px;"></div>
-            
             <button id="main-btn-add-chapter" class="btn-add-chapter"><i class="fa-solid fa-plus"></i> <span id="btn-add-chapter">အခန်းတိုးမည် (Add Chapter)</span></button>
+        </div>
+
+        <div class="download-section" style="margin-top: 30px; text-align: center;">
+            <button id="btn-download-epub" style="width: 100%; background: linear-gradient(135deg, #f39c12, #d35400); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 15px rgba(211, 84, 0, 0.3);">
+                <i class="fa-solid fa-cloud-arrow-down" style="font-size: 20px;"></i>
+                <span id="text-download">ePub ဖိုင် ထုတ်ယူမည် (Download)</span>
+            </button>
         </div>
     </div>
 
@@ -86,7 +91,8 @@
                     text_logout: "ထွက်မည်",
                     chapter_placeholder: "အခန်းခေါင်းစဉ် အမည်",
                     content_placeholder: "ဤအခန်းအတွက် စာသားများကို ဤနေရာတွင် ရေးသားပါ...",
-                    chapter_img_btn: "အခန်းတွင်း ဓာတ်ပုံထည့်မည်"
+                    chapter_img_btn: "အခန်းတွင်း ဓာတ်ပုံထည့်မည်",
+                    text_download: "ePub ဖိုင် ထုတ်ယူမည် (Download)"
                 },
                 en: {
                     backup_title: "Book Backup Management",
@@ -103,7 +109,8 @@
                     text_logout: "Logout",
                     chapter_placeholder: "Chapter Title",
                     content_placeholder: "Write chapter contents here...",
-                    chapter_img_btn: "Add Chapter Image"
+                    chapter_img_btn: "Add Chapter Image",
+                    text_download: "Download ePub File"
                 }
             };
 
@@ -112,7 +119,7 @@
             const htmlEl = document.documentElement;
             let currentLang = 'my'; 
 
-            // Night Mode Logic
+            // Night Mode
             if (themeToggle) {
                 themeToggle.addEventListener('click', () => {
                     const currentTheme = htmlEl.getAttribute('data-theme');
@@ -148,15 +155,15 @@
                     document.getElementById('label-chapters').innerText = translations[currentLang].label_chapters;
                     document.getElementById('btn-add-chapter').innerText = translations[currentLang].btn_add_chapter;
                     document.getElementById('text-logout').innerText = translations[currentLang].text_logout;
+                    document.getElementById('text-download').innerText = translations[currentLang].text_download;
 
-                    // လက်ရှိတိုးထားတဲ့ အခန်းတွေရဲ့ placeholder တွေကိုပါ ဘာသာစကား လိုက်ပြောင်းပေးခြင်း
                     document.querySelectorAll('.ch-title-input').forEach(el => el.placeholder = translations[currentLang].chapter_placeholder);
                     document.querySelectorAll('.ch-content-input').forEach(el => el.placeholder = translations[currentLang].content_placeholder);
                     document.querySelectorAll('.ch-img-btn-text').forEach(el => el.innerText = translations[currentLang].chapter_img_btn);
                 });
             }
 
-            // Main Cover File Choose Logic
+            // Cover File Input
             const realFileInput = document.getElementById('real-file-input');
             const customFileBtn = document.getElementById('btn-choose');
             const fileNameDisplay = document.getElementById('no-file');
@@ -166,15 +173,13 @@
                 fileNameDisplay.innerText = realFileInput.files.length > 0 ? realFileInput.files[0].name : translations[currentLang].no_file;
             });
 
-            // Add Chapter + Content + Image Logic
+            // Add Chapter Logic
             const addChapterBtn = document.getElementById('main-btn-add-chapter');
             const chaptersContainer = document.getElementById('chapters-container');
             let chapterCount = 0;
 
             addChapterBtn.addEventListener('click', () => {
                 chapterCount++;
-                
-                // အခန်းတစ်ခုချင်းစီအတွက် Card ပုံစံ Box အသစ် ဆောက်ခြင်း
                 const chapterCard = document.createElement('div');
                 chapterCard.className = "card";
                 chapterCard.style.cssText = "padding: 15px; margin-bottom: 15px; background-color: var(--card-bg); border: 1px solid var(--input-border); border-radius: 12px;";
@@ -184,11 +189,8 @@
                         <span style="font-weight: bold; font-size: 14px; color: #f1c40f;">Chapter ${chapterCount}</span>
                         <button class="btn-delete-chapter" style="background: #c0392b; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
                     </div>
-                    
                     <input type="text" class="ch-title-input" placeholder="${translations[currentLang].chapter_placeholder}" style="width: 100%; padding: 10px; margin-bottom: 10px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-color);">
-                    
                     <textarea class="ch-content-input" placeholder="${translations[currentLang].content_placeholder}" rows="4" style="width: 100%; padding: 10px; margin-bottom: 10px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-color); resize: vertical; font-family: inherit;"></textarea>
-                    
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <input type="file" class="ch-file-input" accept="image/*" style="display: none;">
                         <button class="ch-custom-img-btn" style="background-color: #34495e; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;">
@@ -200,7 +202,6 @@
                 
                 chaptersContainer.appendChild(chapterCard);
 
-                // အခန်းတွင်း ဓာတ်ပုံရွေးချယ်ခြင်း အလုပ်လုပ်ပုံ
                 const chFileInput = chapterCard.querySelector('.ch-file-input');
                 const chImgBtn = chapterCard.querySelector('.ch-custom-img-btn');
                 const chFileName = chapterCard.querySelector('.ch-file-name');
@@ -210,13 +211,12 @@
                     chFileName.innerText = chFileInput.files.length > 0 ? chFileInput.files[0].name : "No file selected";
                 });
 
-                // အခန်းဖျက်သည့် ခလုတ် အလုပ်လုပ်ပုံ
                 chapterCard.querySelector('.btn-delete-chapter').addEventListener('click', () => {
                     chapterCard.remove();
                 });
             });
 
-            // Backup & Reset Logics
+            // Backup & Load Logics
             const bookTitleInput = document.getElementById('book-title');
             const bookAuthorInput = document.getElementById('book-author');
 
@@ -244,6 +244,40 @@
                     fileNameDisplay.innerText = translations[currentLang].no_file;
                     chaptersContainer.innerHTML = ''; chapterCount = 0;
                 }
+            });
+
+            // ၇။ ePub Download ပြုလုပ်ပေးမည့် လုပ်ဆောင်ချက်သစ်
+            document.getElementById('btn-download-epub').addEventListener('click', () => {
+                const title = bookTitleInput.value.trim() || "Untitled Book";
+                const author = bookAuthorInput.value.trim() || "Unknown Author";
+
+                if (!bookTitleInput.value.trim()) {
+                    alert(currentLang === 'my' ? "ကျေးဇူးပြု၍ စာအုပ်အမည်ကို အရင်ဖြည့်စွက်ပေးပါ။" : "Please enter the Book Title first.");
+                    return;
+                }
+
+                // ePub File တည်ဆောက်ရန် ရိုးရှင်းသော စာသားအခြေခံတည်ဆောက်ပုံ
+                let epubContent = `BOOK: ${title}\nAUTHOR: ${author}\n\n`;
+                
+                const chapterCards = chaptersContainer.querySelectorAll('.card');
+                if(chapterCards.length === 0) {
+                    epubContent += "No chapters added.";
+                } else {
+                    chapterCards.forEach((card, index) => {
+                        const chTitle = card.querySelector('.ch-title-input').value.trim() || `Chapter ${index + 1}`;
+                        const chText = card.querySelector('.ch-content-input').value.trim() || "(No content)";
+                        epubContent += `=========================\n${chTitle}\n=========================\n${chText}\n\n`;
+                    });
+                }
+
+                // File အဖြစ်ပြောင်းလဲပြီး Download ချပေးခြင်း
+                const blob = new Blob([epubContent], { type: "application/epub+zip" });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${title.replace(/\s+/g, '_')}.epub`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             });
         });
     </script>
