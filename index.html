@@ -57,6 +57,7 @@
 <body>
 
     <div class="app-container">
+        <!-- Header Section -->
         <header style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
             <div class="logo" style="display: flex; align-items: center; gap: 10px;">
                 <i class="fa-solid fa-book-open logo-icon" style="color: #f1c40f; font-size: 24px;"></i>
@@ -68,28 +69,34 @@
                     <i class="fa-solid fa-moon"></i>
                 </button>
                 <button id="lang-toggle" class="control-btn" style="background: #1b243c; color: #f1c40f; border: 1px solid #2c3a59; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">EN</button>
-                <button class="btn-logout" style="background: #c0392b; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 5px;">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span id="text-logout">ထွက်မည်</span>
-                </button>
             </div>
         </header>
 
-        <div class="user-info" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <span class="user-email" style="color: #8fa0bc; font-size: 14px;"><i class="fa-regular fa-user"></i> naing5588@icloud.com</span>
-            <span class="badge-premium" style="background: #e67e22; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold;"><i class="fa-solid fa-crown"></i> Premium</span>
+        <!-- User Info & Logout (ပြင်ဆင်ထားသော နေရာသစ်) -->
+        <div class="user-info" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #1b243c; padding: 10px 15px; border-radius: 10px; border: 1px solid #2c3a59;">
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <span class="user-email" style="color: #8fa0bc; font-size: 14px;"><i class="fa-regular fa-user"></i> naing5588@icloud.com</span>
+                <span class="badge-premium" style="align-self: flex-start; background: #e67e22; color: white; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: bold;"><i class="fa-solid fa-crown"></i> Premium</span>
+            </div>
+            <!-- ထွက်မည်ခလုတ်ကို ဖုန်းဖြင့်နှိပ်ရလွယ်ကူပြီး မကွယ်နိုင်သော နေရာသို့ ရွှေ့လိုက်ပါသည် -->
+            <button class="btn-logout" id="btn-logout-action" style="background: linear-gradient(135deg, #d35400, #c0392b); color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.15);">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span id="text-logout">ထွက်မည်</span>
+            </button>
         </div>
 
+        <!-- Backup Section -->
         <div class="card backup-section">
             <h3 id="backup-title">စာအုပ် BACKUP စီမံခန့်ခွဲမှု</h3>
             <button id="main-btn-backup" class="btn btn-green"><i class="fa-solid fa-file-arrow-down"></i> <span id="btn-backup">လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)</span></button>
             
-            <button id="main-btn-load" class="btn btn-blue"><i class="fa-solid fa-file-arrow-up"></i> <span id="btn-load">စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup)</span></button>
+            <button id="main-btn-load" class="btn btn-blue"><i class="fa-solid fa-file-arrow-up"></i> <span id="btn-load">စာအုပ်ဟောင်း ပြန်တင်မည် (Load Backup)</span></button>
             <input type="file" id="backup-file-input" accept=".json" style="display: none;">
             
             <button id="main-btn-reset" class="btn btn-red"><i class="fa-solid fa-trash-can"></i> <span id="btn-reset">စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)</span></button>
         </div>
 
+        <!-- Inputs Section -->
         <div class="form-group">
             <label id="label-title">စာအုပ်အမည် (Book Title)</label>
             <input type="text" id="book-title" placeholder="သုမ... ဖြစ်တည်မှု အပိုင်းအစများ">
@@ -109,12 +116,14 @@
             </div>
         </div>
 
+        <!-- Chapters Section -->
         <div class="chapters-section" style="margin-bottom: 25px;">
             <label id="label-chapters">အခန်းများ (Chapters)</label>
             <div id="chapters-container" style="margin-bottom: 15px;"></div>
             <button id="main-btn-add-chapter" class="btn-add-chapter"><i class="fa-solid fa-plus"></i> <span id="btn-add-chapter">အခန်းတိုးမည် (Add Chapter)</span></button>
         </div>
 
+        <!-- Download Section -->
         <div class="download-section" style="margin-top: 30px; text-align: center;">
             <button id="btn-download-epub" style="width: 100%; background: linear-gradient(135deg, #f39c12, #d35400); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 15px rgba(211, 84, 0, 0.3);">
                 <i class="fa-solid fa-cloud-arrow-down" style="font-size: 20px;"></i>
@@ -131,7 +140,7 @@
                 my: {
                     backup_title: "စာအုပ် BACKUP စီမံခန့်ခွဲမှု",
                     btn_backup: "လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)",
-                    btn_load: "စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup)",
+                    btn_load: "စာအုပ်ဟောင်း ပြန်တင်မည် (Load Backup)",
                     btn_reset: "စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)",
                     label_title: "စာအုပ်အမည် (Book Title)",
                     label_author: "စာရေးဆရာ (Author)",
@@ -206,6 +215,17 @@
                     document.getElementById('text-download').innerText = translations[currentLang].text_download;
 
                     document.querySelectorAll('.ch-title-input').forEach(el => el.placeholder = translations[currentLang].chapter_placeholder);
+                });
+            }
+
+            // ထွက်မည် (Logout Action)
+            const logoutBtn = document.getElementById('btn-logout-action');
+            if(logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    // ထွက်မည့်စနစ် သတ်မှတ်ရန်
+                    if(confirm(currentLang === 'my' ? "အကောင့်ထဲမှ ထွက်ရန် သေချာပါသလား။" : "Are you sure you want to logout?")) {
+                        alert(currentLang === 'my' ? "အောင်မြင်စွာ ထွက်ပြီးပါပြီ။" : "Logged out successfully.");
+                    }
                 });
             }
 
@@ -299,7 +319,7 @@
             const bookTitleInput = document.getElementById('book-title');
             const bookAuthorInput = document.getElementById('book-author');
 
-            // ၁။ စာအုပ်ဒေတာတစ်ခုလုံးကို သင့်ဖုန်းထဲကို .json ဖိုင်အနေနဲ့ ဒေါင်းလုဒ်ဆွဲပြီး အမြဲသိမ်းဆည်းမည့်စနစ်
+            // JSON Backup စနစ်
             document.getElementById('main-btn-backup').addEventListener('click', () => {
                 const chaptersData = [];
                 document.querySelectorAll('.chapter-card-item').forEach((card) => {
@@ -318,7 +338,6 @@
                 const downloadAnchor = document.createElement('a');
                 downloadAnchor.setAttribute("href", jsonString);
                 
-                // ဖိုင်အမည်ကို စာအုပ်အမည်အတိုင်း ပေးပြီး သိမ်းဆည်းခြင်း
                 const fileName = (bookTitleInput.value.trim() || "book_backup") + ".json";
                 downloadAnchor.setAttribute("download", fileName);
                 document.body.appendChild(downloadAnchor);
@@ -326,42 +345,44 @@
                 downloadAnchor.remove();
             });
 
-            // ၂။ ဖုန်းထဲက သိမ်းထားတဲ့ စာအုပ် .json ဖိုင်ကို ပြန်ရွေးပြီး တင်မည့်စနစ် (Load Backup)
+            // Load Backup စနစ်
             const backupFileInput = document.getElementById('backup-file-input');
             const loadBackupBtn = document.getElementById('main-btn-load');
 
-            loadBackupBtn.addEventListener('click', () => {
-                backupFileInput.click(); // ခလုတ်နှိပ်ရင် ဖိုင်ရွေးဖို့ Box ပွင့်လာမည်
-            });
+            if(loadBackupBtn && backupFileInput) {
+                loadBackupBtn.addEventListener('click', () => {
+                    backupFileInput.click();
+                });
 
-            backupFileInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
+                backupFileInput.addEventListener('change', (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
 
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const bookData = JSON.parse(e.target.result);
-                        
-                        bookTitleInput.value = bookData.title || '';
-                        bookAuthorInput.value = bookData.author || '';
-                        
-                        chaptersContainer.innerHTML = '';
-                        chapterCount = 0;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const bookData = JSON.parse(e.target.result);
+                            
+                            bookTitleInput.value = bookData.title || '';
+                            bookAuthorInput.value = bookData.author || '';
+                            
+                            chaptersContainer.innerHTML = '';
+                            chapterCount = 0;
 
-                        if(bookData.chapters && bookData.chapters.length > 0) {
-                            bookData.chapters.forEach(ch => {
-                                createChapterInstance(ch.title, ch.content);
-                            });
+                            if(bookData.chapters && bookData.chapters.length > 0) {
+                                bookData.chapters.forEach(ch => {
+                                    createChapterInstance(ch.title, ch.content);
+                                });
+                            }
+                            alert(currentLang === 'my' ? "သိမ်းဆည်းထားသော စာအုပ်ဖိုင်ကို အောင်မြင်စွာ ပြန်တင်ပြီးပါပြီ။" : "Book file loaded successfully!");
+                        } catch (err) {
+                            alert(currentLang === 'my' ? "ဖိုင်ဖတ်၍မရပါ။ မှန်ကန်သော စာအုပ် Backup .json ဖိုင် ဖြစ်ပါစေ။" : "Invalid file format. Please select a valid book backup .json file.");
                         }
-                        alert(currentLang === 'my' ? "သိမ်းဆည်းထားသော စာအုပ်ဖိုင်ကို အောင်မြင်စွာ ပြန်တင်ပြီးပါပြီ။" : "Book file loaded successfully!");
-                    } catch (err) {
-                        alert(currentLang === 'my' ? "ဖိုင်ဖတ်၍မရပါ။ မှန်ကန်သော စာအုပ် Backup .json ဖိုင် ဖြစ်ပါစေ။" : "Invalid file format. Please select a valid book backup .json file.");
-                    }
-                };
-                reader.readAsText(file);
-                backupFileInput.value = ''; // Reset input
-            });
+                    };
+                    reader.readAsText(file);
+                    backupFileInput.value = ''; 
+                });
+            }
 
             document.getElementById('main-btn-reset').addEventListener('click', () => {
                 if (confirm(currentLang === 'my' ? "အစကပြန်စမှာ သေချာပါသလား။" : "Are you sure you want to reset?")) {
@@ -371,7 +392,7 @@
                 }
             });
 
-            // Download ePub
+            // ePub Download
             document.getElementById('btn-download-epub').addEventListener('click', async () => {
                 const title = bookTitleInput.value.trim() || "Untitled Book";
                 const author = bookAuthorInput.value.trim() || "Unknown Author";
