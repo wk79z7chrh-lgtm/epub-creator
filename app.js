@@ -1,77 +1,67 @@
-document.addEventListener("DOMContentLoaded", () => {
-    
-    // ဘာသာစကား စာသားများစွယ်စုံ
-    const translations = {
-        my: {
-            backup_title: "စာအုပ် BACKUP စီမံခန့်ခွဲမှု",
-            btn_backup: "လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)",
-            btn_load: "စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup)",
-            btn_reset: "စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)",
-            label_title: "စာအုပ်အမည် (Book Title)",
-            label_author: "စာရေးဆရာ (Author)",
-            label_cover: "မျက်နှာဖုံးပုံ (Cover Image)",
-            btn_choose: "Choose File",
-            no_file: "No file selected",
-            label_chapters: "အခန်းများ (Chapters)",
-            btn_add_chapter: "အခန်းတိုးမည် (Add Chapter)"
-        },
-        en: {
-            backup_title: "Book Backup Management",
-            btn_backup: "Backup Current Book",
-            btn_load: "Load Backup",
-            btn_reset: "Reset for New Book",
-            label_title: "Book Title",
-            label_author: "Author",
-            label_cover: "Cover Image",
-            btn_choose: "Choose File",
-            no_file: "No file selected",
-            label_chapters: "Chapters",
-            btn_add_chapter: "Add Chapter"
-        }
-    };
+const editor = document.getElementById('editor');
 
-    const themeToggle = document.getElementById('theme-toggle');
-    const langToggle = document.getElementById('lang-toggle');
-    const htmlEl = document.documentElement;
+// ၁။ Logout လုပ်ခြင်း
+function logout() {
+    localStorage.clear();
+    alert("အောင်မြင်စွာ ထွက်ခွာနိုင်ပါပြီ။");
+    window.location.href = "login.html"; // သင့် login စာမျက်နှာနာမည်အတိုင်း ပြင်ပါ
+}
 
-    // အစပိုင်းမှာ မြန်မာလို ပြထားချင်ရင် 'my' လို့ ထားပါ
-    let currentLang = 'my'; 
+// ၂။ Auto-save
+editor.addEventListener('input', () => localStorage.setItem('savedContent', editor.innerHTML));
+window.onload = () => {
+    const saved = localStorage.getItem('savedContent');
+    if (saved) editor.innerHTML = saved;
+};
 
-    // ၁။ Night Mode (Dark/Light) ခလုတ် နှိပ်ရင် အလုပ်လုပ်မည့်အပိုင်း
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = htmlEl.getAttribute('data-theme');
-            if (currentTheme === 'dark') {
-                htmlEl.setAttribute('data-theme', 'light');
-                themeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>'; 
-            } else {
-                htmlEl.setAttribute('data-theme', 'dark');
-                themeToggle.innerHTML = '<i class="fa-solid fa-moon"></i>'; 
-            }
-        });
-    }
+// ၃။ အခန်းသစ်
+function addChapter() {
+    const div = document.createElement('div');
+    div.className = 'chapter';
+    div.innerHTML = `<h3 contenteditable="true">အခန်းခေါင်းစဉ်အသစ်</h3><div contenteditable="true">စာသားများ...</div>`;
+    editor.appendChild(div);
+}
 
-    // ၂။ ဘာသာစကား (မြန်မာ / English) ပြောင်းလဲမည့်အပိုင်း
-    if (langToggle) {
-        langToggle.addEventListener('click', () => {
-            // လက်ရှိ ဘာသာစကားကို ပြောင်းလဲခြင်း
-            currentLang = currentLang === 'my' ? 'en' : 'my';
-            
-            // ညာဘက်အပေါ်က ခလုတ်ရဲ့ စာသားကို ပြောင်းလဲခြင်း
-            langToggle.innerText = currentLang === 'my' ? 'EN' : 'မြန်မာ';
-            
-            // စာသားတစ်ခုချင်းစီကို ID အလိုက် လိုက်လံလဲလှယ်ပေးခြင်း
-            document.getElementById('backup-title').innerText = translations[currentLang].backup_title;
-            document.getElementById('btn-backup').innerText = translations[currentLang].btn_backup;
-            document.getElementById('btn-load').innerText = translations[currentLang].btn_load;
-            document.getElementById('btn-reset').innerText = translations[currentLang].btn_reset;
-            document.getElementById('label-title').innerText = translations[currentLang].label_title;
-            document.getElementById('label-author').innerText = translations[currentLang].label_author;
-            document.getElementById('label-cover').innerText = translations[currentLang].label_cover;
-            document.getElementById('btn-choose').innerText = translations[currentLang].btn_choose;
-            document.getElementById('no-file').innerText = translations[currentLang].no_file;
-            document.getElementById('label-chapters').innerText = translations[currentLang].label_chapters;
-            document.getElementById('btn-add-chapter').innerText = translations[currentLang].btn_add_chapter;
-        });
+// ၄။ ပုံထည့်
+document.getElementById('imgInput').addEventListener('change', function(e) {
+    for (let file of e.target.files) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = document.createElement('img');
+            img.src = event.target.result;
+            img.style.maxWidth = "100%";
+            editor.appendChild(img);
+        };
+        reader.readAsDataURL(file);
     }
 });
+
+// ၅။ အကုန်ဖျက်
+function resetEditor() {
+    if(confirm("အကုန်ဖျက်မှာ သေချာပြီလား?")) {
+        editor.innerHTML = "";
+        localStorage.removeItem('savedContent');
+    }
+}
+
+// ၆။ ePub ထုတ်ခြင်း
+async function generateEPUB() {
+    const zip = new JSZip();
+    zip.file("mimetype", "application/epub+zip");
+    zip.file("META-INF/container.xml", '<?xml version="1.0" encoding="UTF-8"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>');
+    
+    let content = editor.innerHTML;
+    const doc = new DOMParser().parseFromString(content, 'text/html');
+    doc.querySelectorAll('img').forEach((img, i) => {
+        const base64Data = img.src.split(',')[1];
+        if (base64Data) {
+            zip.file(`images/img_${i}.jpg`, base64Data, {base64: true});
+            img.src = `images/img_${i}.jpg`;
+        }
+    });
+    
+    zip.file("content.opf", '<?xml version="1.0" encoding="UTF-8"?><package version="3.0" xmlns="http://www.id3.org/2007/opf" unique-identifier="pub-id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>My Book</dc:title><dc:language>my</dc:language></metadata><manifest><item id="t1" href="index.html" media-type="application/xhtml+xml"/></manifest><spine><itemref idref="t1"/></spine></package>');
+    zip.file("index.html", `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml"><head><title>My Book</title></head><body>${doc.body.innerHTML}</body></html>`);
+    
+    zip.generateAsync({type:"blob"}).then(blob => saveAs(blob, "MyBook.epub"));
+}
