@@ -57,7 +57,6 @@
 <body>
 
     <div class="app-container">
-        <!-- Header Section -->
         <header style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
             <div class="logo" style="display: flex; align-items: center; gap: 10px;">
                 <i class="fa-solid fa-book-open logo-icon" style="color: #f1c40f; font-size: 24px;"></i>
@@ -76,21 +75,21 @@
             </div>
         </header>
 
-        <!-- User Info -->
         <div class="user-info" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <span class="user-email" style="color: #8fa0bc; font-size: 14px;"><i class="fa-regular fa-user"></i> naing5588@icloud.com</span>
             <span class="badge-premium" style="background: #e67e22; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold;"><i class="fa-solid fa-crown"></i> Premium</span>
         </div>
 
-        <!-- Backup Section -->
         <div class="card backup-section">
             <h3 id="backup-title">စာအုပ် BACKUP စီမံခန့်ခွဲမှု</h3>
             <button id="main-btn-backup" class="btn btn-green"><i class="fa-solid fa-file-arrow-down"></i> <span id="btn-backup">လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)</span></button>
+            
             <button id="main-btn-load" class="btn btn-blue"><i class="fa-solid fa-file-arrow-up"></i> <span id="btn-load">စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup)</span></button>
+            <input type="file" id="backup-file-input" accept=".json" style="display: none;">
+            
             <button id="main-btn-reset" class="btn btn-red"><i class="fa-solid fa-trash-can"></i> <span id="btn-reset">စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)</span></button>
         </div>
 
-        <!-- Inputs Section -->
         <div class="form-group">
             <label id="label-title">စာအုပ်အမည် (Book Title)</label>
             <input type="text" id="book-title" placeholder="သုမ... ဖြစ်တည်မှု အပိုင်းအစများ">
@@ -110,14 +109,12 @@
             </div>
         </div>
 
-        <!-- Chapters Section -->
         <div class="chapters-section" style="margin-bottom: 25px;">
             <label id="label-chapters">အခန်းများ (Chapters)</label>
             <div id="chapters-container" style="margin-bottom: 15px;"></div>
             <button id="main-btn-add-chapter" class="btn-add-chapter"><i class="fa-solid fa-plus"></i> <span id="btn-add-chapter">အခန်းတိုးမည် (Add Chapter)</span></button>
         </div>
 
-        <!-- Download Section -->
         <div class="download-section" style="margin-top: 30px; text-align: center;">
             <button id="btn-download-epub" style="width: 100%; background: linear-gradient(135deg, #f39c12, #d35400); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 15px rgba(211, 84, 0, 0.3);">
                 <i class="fa-solid fa-cloud-arrow-down" style="font-size: 20px;"></i>
@@ -225,7 +222,6 @@
             const chaptersContainer = document.getElementById('chapters-container');
             let chapterCount = 0;
 
-            // အခန်းအသစ်တစ်ခု ဖန်တီးပေးသည့် Function
             function createChapterInstance(titleValue = '', contentHtml = '') {
                 chapterCount++;
                 const chapterCard = document.createElement('div');
@@ -288,7 +284,6 @@
                 });
             }
 
-            // အခန်းများကို နံပါတ်ပြန်စဉ်ပေးသည့် စနစ်
             function reindexChapters() {
                 chapterCount = 0;
                 document.querySelectorAll('.chapter-card-item').forEach((card) => {
@@ -304,7 +299,7 @@
             const bookTitleInput = document.getElementById('book-title');
             const bookAuthorInput = document.getElementById('book-author');
 
-            // ၁။ အဆင့်မြင့် စာအုပ် Backup စနစ် (ပုံရော၊ အခန်းများပါ အကုန်သိမ်းမည်)
+            // ၁။ စာအုပ်ဒေတာတစ်ခုလုံးကို သင့်ဖုန်းထဲကို .json ဖိုင်အနေနဲ့ ဒေါင်းလုဒ်ဆွဲပြီး အမြဲသိမ်းဆည်းမည့်စနစ်
             document.getElementById('main-btn-backup').addEventListener('click', () => {
                 const chaptersData = [];
                 document.querySelectorAll('.chapter-card-item').forEach((card) => {
@@ -319,34 +314,53 @@
                     chapters: chaptersData
                 };
 
-                localStorage.setItem('epub_book_pro_backup', JSON.stringify(fullBookData));
-                alert(currentLang === 'my' ? "စာသားနှင့် ဓာတ်ပုံများအပါအဝင် စာအုပ်တစ်ခုလုံးကို Backup အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။" : "Full book data (including text & images) successfully backed up!");
+                const jsonString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullBookData));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", jsonString);
+                
+                // ဖိုင်အမည်ကို စာအုပ်အမည်အတိုင်း ပေးပြီး သိမ်းဆည်းခြင်း
+                const fileName = (bookTitleInput.value.trim() || "book_backup") + ".json";
+                downloadAnchor.setAttribute("download", fileName);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
             });
 
-            // ၂။ စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup) စနစ်
-            document.getElementById('main-btn-load').addEventListener('click', () => {
-                const savedData = localStorage.getItem('epub_book_pro_backup');
-                if (savedData) {
-                    const bookData = JSON.parse(savedData);
-                    
-                    // ခေါင်းစဉ်နှင့် စာရေးဆရာကို ထည့်သွင်းခြင်း
-                    bookTitleInput.value = bookData.title || '';
-                    bookAuthorInput.value = bookData.author || '';
-                    
-                    // ရှိပြီးသား အခန်းဟောင်းများကို အကုန်ဖျက်ပစ်ခြင်း
-                    chaptersContainer.innerHTML = '';
-                    chapterCount = 0;
+            // ၂။ ဖုန်းထဲက သိမ်းထားတဲ့ စာအုပ် .json ဖိုင်ကို ပြန်ရွေးပြီး တင်မည့်စနစ် (Load Backup)
+            const backupFileInput = document.getElementById('backup-file-input');
+            const loadBackupBtn = document.getElementById('main-btn-load');
 
-                    // Backup ထဲက အခန်းများကို ပုံရောစာပါ ပြန်လည် တည်ဆောက်ခြင်း
-                    if(bookData.chapters && bookData.chapters.length > 0) {
-                        bookData.chapters.forEach(ch => {
-                            createChapterInstance(ch.title, ch.content);
-                        });
+            loadBackupBtn.addEventListener('click', () => {
+                backupFileInput.click(); // ခလုတ်နှိပ်ရင် ဖိုင်ရွေးဖို့ Box ပွင့်လာမည်
+            });
+
+            backupFileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const bookData = JSON.parse(e.target.result);
+                        
+                        bookTitleInput.value = bookData.title || '';
+                        bookAuthorInput.value = bookData.author || '';
+                        
+                        chaptersContainer.innerHTML = '';
+                        chapterCount = 0;
+
+                        if(bookData.chapters && bookData.chapters.length > 0) {
+                            bookData.chapters.forEach(ch => {
+                                createChapterInstance(ch.title, ch.content);
+                            });
+                        }
+                        alert(currentLang === 'my' ? "သိမ်းဆည်းထားသော စာအုပ်ဖိုင်ကို အောင်မြင်စွာ ပြန်တင်ပြီးပါပြီ။" : "Book file loaded successfully!");
+                    } catch (err) {
+                        alert(currentLang === 'my' ? "ဖိုင်ဖတ်၍မရပါ။ မှန်ကန်သော စာအုပ် Backup .json ဖိုင် ဖြစ်ပါစေ။" : "Invalid file format. Please select a valid book backup .json file.");
                     }
-                    alert(currentLang === 'my' ? "သိမ်းဆည်းထားသော စာအုပ်ဖောင်းတစ်ခုလုံး (ပုံနှင့်စာသားများ) ကို ပြန်တင်ပြီးပါပြီ။" : "Full backup loaded successfully!");
-                } else {
-                    alert(currentLang === 'my' ? "ပြန်တင်ရန် သိမ်းဆည်းထားသော Backup မရှိသေးပါ။" : "No saved backup found!");
-                }
+                };
+                reader.readAsText(file);
+                backupFileInput.value = ''; // Reset input
             });
 
             document.getElementById('main-btn-reset').addEventListener('click', () => {
@@ -357,7 +371,7 @@
                 }
             });
 
-            // Download ePub စနစ်
+            // Download ePub
             document.getElementById('btn-download-epub').addEventListener('click', async () => {
                 const title = bookTitleInput.value.trim() || "Untitled Book";
                 const author = bookAuthorInput.value.trim() || "Unknown Author";
