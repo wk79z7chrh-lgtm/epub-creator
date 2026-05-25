@@ -189,14 +189,16 @@
                             <button class="btn-delete-chapter" style="background: #c0392b; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
                         </div>
                         <input type="text" class="ch-title-input" placeholder="${translations[currentLang].chapter_placeholder}" style="width: 100%; padding: 10px; margin-bottom: 10px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-color);">
-                        <textarea class="ch-content-input" placeholder="${translations[currentLang].content_placeholder}" rows="4" style="width: 100%; padding: 10px; margin-bottom: 10px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-color); resize: vertical; font-family: inherit;"></textarea>
-                        <div style="display: flex; align-items: center; gap: 10px;">
+                        
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px; border: 1px dashed var(--input-border);">
                             <input type="file" class="ch-file-input" accept="image/*" style="display: none;">
                             <button class="ch-custom-img-btn" style="background-color: #34495e; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;">
                                 <i class="fa-regular fa-image"></i> <span class="ch-img-btn-text">${translations[currentLang].chapter_img_btn}</span>
                             </button>
                             <span class="ch-file-name" style="font-size: 12px; color: var(--text-muted);">No file selected</span>
                         </div>
+
+                        <textarea class="ch-content-input" placeholder="${translations[currentLang].content_placeholder}" rows="5" style="width: 100%; padding: 10px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-color); resize: vertical; font-family: inherit;"></textarea>
                     `;
                     
                     chaptersContainer.appendChild(chapterCard);
@@ -245,7 +247,7 @@
                 }
             });
 
-            // ePub စနစ်တကျ ထုတ်ယူပေးမည့် လုပ်ဆောင်ချက်
+            // ePub ထုတ်ယူမည့် စနစ်
             document.getElementById('btn-download-epub').addEventListener('click', async () => {
                 const title = bookTitleInput.value.trim() || "Untitled Book";
                 const author = bookAuthorInput.value.trim() || "Unknown Author";
