@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="my" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,28 +10,34 @@
 <body>
 
     <div class="app-container">
-        <header>
-            <div class="logo">
-                <i class="fa-solid fa-book-open logo-icon"></i>
-                <span class="logo-text">Web ePub Creator Pro</span>
+        <header style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
+            <div class="logo" style="display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-book-open logo-icon" style="color: #f1c40f; font-size: 24px;"></i>
+                <span class="logo-text" style="font-size: 20px; font-weight: bold; color: #f1c40f;">Web ePub Creator Pro</span>
             </div>
             
-            <div class="controls">
-                <button id="theme-toggle" class="control-btn"><i class="fa-solid fa-moon"></i></button>
-                <button id="lang-toggle" class="control-btn">EN</button>
+            <div class="controls" style="display: flex; gap: 8px; align-items: center;">
+                <button id="theme-toggle" class="control-btn" style="background: #1b243c; color: #f1c40f; border: 1px solid #2c3a59; padding: 8px 12px; border-radius: 8px; cursor: pointer;">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                <button id="lang-toggle" class="control-btn" style="background: #1b243c; color: #f1c40f; border: 1px solid #2c3a59; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">EN</button>
+                <button class="btn-logout" style="background: #c0392b; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 5px;">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span id="text-logout">ထွက်မည်</span>
+                </button>
             </div>
         </header>
 
-        <div class="user-info">
-            <span class="user-email"><i class="fa-regular fa-user"></i> naing5588@icloud.com</span>
-            <span class="badge-premium"><i class="fa-solid fa-crown"></i> Premium</span>
+        <div class="user-info" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <span class="user-email" style="color: #8fa0bc; font-size: 14px;"><i class="fa-regular fa-user"></i> naing5588@icloud.com</span>
+            <span class="badge-premium" style="background: #e67e22; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold;"><i class="fa-solid fa-crown"></i> Premium</span>
         </div>
 
         <div class="card backup-section">
             <h3 id="backup-title">စာအုပ် BACKUP စီမံခန့်ခွဲမှု</h3>
-            <button class="btn btn-green"><i class="fa-solid fa-file-arrow-down"></i> <span id="btn-backup">လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)</span></button>
-            <button class="btn btn-blue"><i class="fa-solid fa-file-arrow-up"></i> <span id="btn-load">စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup)</span></button>
-            <button class="btn btn-red"><i class="fa-solid fa-trash-can"></i> <span id="btn-reset">စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)</span></button>
+            <button id="main-btn-backup" class="btn btn-green"><i class="fa-solid fa-file-arrow-down"></i> <span id="btn-backup">လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)</span></button>
+            <button id="main-btn-load" class="btn btn-blue"><i class="fa-solid fa-file-arrow-up"></i> <span id="btn-load">စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup)</span></button>
+            <button id="main-btn-reset" class="btn btn-red"><i class="fa-solid fa-trash-can"></i> <span id="btn-reset">စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)</span></button>
         </div>
 
         <div class="form-group">
@@ -47,6 +53,7 @@
         <div class="form-group">
             <label id="label-cover">မျက်နှာဖုံးပုံ (Cover Image)</label>
             <div class="file-input-wrapper">
+                <input type="file" id="real-file-input" accept="image/*" style="display: none;">
                 <button class="btn-file" id="btn-choose">Choose File</button>
                 <span class="file-name" id="no-file">No file selected</span>
             </div>
@@ -54,12 +61,15 @@
 
         <div class="chapters-section">
             <label id="label-chapters">အခန်းများ (Chapters)</label>
-            <button class="btn-add-chapter"><i class="fa-solid fa-plus"></i> <span id="btn-add-chapter">အခန်းတိုးမည် (Add Chapter)</span></button>
+            <div id="chapters-container" style="margin-bottom: 15px;"></div>
+            
+            <button id="main-btn-add-chapter" class="btn-add-chapter"><i class="fa-solid fa-plus"></i> <span id="btn-add-chapter">အခန်းတိုးမည် (Add Chapter)</span></button>
         </div>
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            // ၁။ ဘာသာစကား ပြန်ဆိုချက်များ
             const translations = {
                 my: {
                     backup_title: "စာအုပ် BACKUP စီမံခန့်ခွဲမှု",
@@ -70,9 +80,10 @@
                     label_author: "စာရေးဆရာ (Author)",
                     label_cover: "မျက်နှာဖုံးပုံ (Cover Image)",
                     btn_choose: "Choose File",
-                    no_file: "No file selected",
+                    no_file: "ရွေးချယ်ထားသော ဖိုင်မရှိပါ",
                     label_chapters: "အခန်းများ (Chapters)",
-                    btn_add_chapter: "အခန်းတိုးမည် (Add Chapter)"
+                    btn_add_chapter: "အခန်းတိုးမည် (Add Chapter)",
+                    text_logout: "ထွက်မည်"
                 },
                 en: {
                     backup_title: "Book Backup Management",
@@ -85,7 +96,8 @@
                     btn_choose: "Choose File",
                     no_file: "No file selected",
                     label_chapters: "Chapters",
-                    btn_add_chapter: "Add Chapter"
+                    btn_add_chapter: "Add Chapter",
+                    text_logout: "Logout"
                 }
             };
 
@@ -94,6 +106,7 @@
             const htmlEl = document.documentElement;
             let currentLang = 'my'; 
 
+            // ၂။ Night Mode ဟောင်း/သစ် Toggle လုပ်ဆောင်ချက်
             if (themeToggle) {
                 themeToggle.addEventListener('click', () => {
                     const currentTheme = htmlEl.getAttribute('data-theme');
@@ -107,6 +120,7 @@
                 });
             }
 
+            // ၃။ ဘာသာစကား (Language) ပြောင်းလဲခြင်း လုပ်ဆောင်ချက်
             if (langToggle) {
                 langToggle.addEventListener('click', () => {
                     currentLang = currentLang === 'my' ? 'en' : 'my';
@@ -120,11 +134,94 @@
                     document.getElementById('label-author').innerText = translations[currentLang].label_author;
                     document.getElementById('label-cover').innerText = translations[currentLang].label_cover;
                     document.getElementById('btn-choose').innerText = translations[currentLang].btn_choose;
-                    document.getElementById('no-file').innerText = translations[currentLang].no_file;
+                    
+                    if(document.getElementById('real-file-input').files.length === 0) {
+                        document.getElementById('no-file').innerText = translations[currentLang].no_file;
+                    }
+                    
                     document.getElementById('label-chapters').innerText = translations[currentLang].label_chapters;
                     document.getElementById('btn-add-chapter').innerText = translations[currentLang].btn_add_chapter;
+                    document.getElementById('text-logout').innerText = translations[currentLang].text_logout;
                 });
             }
+
+            // ၄။ Choose File (ဖိုင်ရွေးချယ်ခြင်း) လုပ်ဆောင်ချက်
+            const realFileInput = document.getElementById('real-file-input');
+            const customFileBtn = document.getElementById('btn-choose');
+            const fileNameDisplay = document.getElementById('no-file');
+
+            customFileBtn.addEventListener('click', () => {
+                realFileInput.click(); // ဝှက်ထားတဲ့ တကယ့်ဖိုင်ရွေးခလုတ်ကို လှမ်းနှိပ်ခိုင်းခြင်း
+            });
+
+            realFileInput.addEventListener('change', () => {
+                if (realFileInput.files.length > 0) {
+                    fileNameDisplay.innerText = realFileInput.files[0].name; // ရွေးလိုက်တဲ့ ဖိုင်နာမည်ကို ပြပေးခြင်း
+                } else {
+                    fileNameDisplay.innerText = translations[currentLang].no_file;
+                }
+            });
+
+            // ၅။ Add Chapter (အခန်းတိုးမည်) လုပ်ဆောင်ချက်
+            const addChapterBtn = document.getElementById('main-btn-add-chapter');
+            const chaptersContainer = document.getElementById('chapters-container');
+            let chapterCount = 0;
+
+            addChapterBtn.addEventListener('click', () => {
+                chapterCount++;
+                // အခန်းတိုးတဲ့အခါ အောက်မှာ Input Box အသစ်လေးတွေ ပေါ်လာအောင် လုပ်ခြင်း
+                const chapterDiv = document.createElement('div');
+                chapterDiv.style.cssText = "display: flex; gap: 10px; margin-bottom: 10px; animation: fadeIn 0.3s;";
+                chapterDiv.innerHTML = `
+                    <input type="text" placeholder="အခန်း (${chapterCount}) အမည်" style="flex: 1; padding: 10px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-color);">
+                    <button class="btn-delete-chapter" style="background: #c0392b; color: white; border: none; padding: 0 15px; border-radius: 8px; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+                `;
+                chaptersContainer.appendChild(chapterDiv);
+
+                // ဖျက်တဲ့ ခလုတ်နှိပ်ရင် အခန်းပြန်ပျောက်အောင် လုပ်ခြင်း
+                chapterDiv.querySelector('.btn-delete-chapter').addEventListener('click', () => {
+                    chapterDiv.remove();
+                });
+            });
+
+            // ၆။ Backup, Load, Reset လုပ်ဆောင်ချက်များ (Browser Storage သုံးပြီး အချက်အလက်သိမ်းခြင်း)
+            const bookTitleInput = document.getElementById('book-title');
+            const bookAuthorInput = document.getElementById('book-author');
+
+            // Backup ခလုတ်နှိပ်ရင် ရေးထားတာတွေကို သိမ်းမယ်
+            document.getElementById('main-btn-backup').addEventListener('click', () => {
+                const bookData = {
+                    title: bookTitleInput.value,
+                    author: bookAuthorInput.value
+                };
+                localStorage.setItem('epub_book_backup', JSON.stringify(bookData));
+                alert(currentLang === 'my' ? "စာအုပ်အချက်အလက်များကို Backup သိမ်းဆည်းပြီးပါပြီ။" : "Book data successfully backed up!");
+            });
+
+            // Load Backup ခလုတ်နှိပ်ရင် သိမ်းထားတာတွေကို ပြန်ဖော်မယ်
+            document.getElementById('main-btn-load').addEventListener('click', () => {
+                const savedData = localStorage.getItem('epub_book_backup');
+                if (savedData) {
+                    const bookData = JSON.parse(savedData);
+                    bookTitleInput.value = bookData.title;
+                    bookAuthorInput.value = bookData.author;
+                    alert(currentLang === 'my' ? "Backup ဖိုင်ကို ပြန်တင်ပြီးပါပြီ။" : "Backup loaded successfully!");
+                } else {
+                    alert(currentLang === 'my' ? "ပြန်တင်ရန် သိမ်းဆည်းထားသော Backup မရှိသေးပါ၊" : "No saved backup found!");
+                }
+            });
+
+            // Reset ခလုတ်နှိပ်ရင် အကုန်အစကပြန်စမယ်
+            document.getElementById('main-btn-reset').addEventListener('click', () => {
+                if (confirm(currentLang === 'my' ? "အစကပြန်စမှာ သေချာပါသလား။ ရေးထားတာတွေ အကုန်ပျက်သွားပါလိမ့်မယ်။" : "Are you sure you want to reset? All inputs will be cleared.")) {
+                    bookTitleInput.value = '';
+                    bookAuthorInput.value = '';
+                    realFileInput.value = '';
+                    fileNameDisplay.innerText = translations[currentLang].no_file;
+                    chaptersContainer.innerHTML = '';
+                    chapterCount = 0;
+                }
+            });
         });
     </script>
 </body>
