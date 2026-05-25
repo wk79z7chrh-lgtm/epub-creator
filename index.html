@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="my" data-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,7 +17,7 @@
             </div>
             
             <div class="controls">
-                <button id="theme-toggle" class="control-btn" title="Toggle Night Mode">
+                <button id="theme-toggle" class="control-btn">
                     <i class="fa-solid fa-moon"></i>
                 </button>
                 <button id="lang-toggle" class="control-btn">EN</button>
@@ -30,47 +30,47 @@
         </div>
 
         <div class="card backup-section">
-            <h3 data-lang="backup_title">စာအုပ် BACKUP စီမံခန့်ခွဲမှု</h3>
+            <h3 id="backup-title">စာအုပ် BACKUP စီမံခန့်ခွဲမှု</h3>
             
             <button class="btn btn-green">
                 <i class="fa-solid fa-file-arrow-down"></i>
-                <span data-lang="btn_backup">လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)</span>
+                <span id="btn-backup">လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)</span>
             </button>
             
             <button class="btn btn-blue">
                 <i class="fa-solid fa-file-arrow-up"></i>
-                <span data-lang="btn_load">စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup)</span>
+                <span id="btn-load">စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup)</span>
             </button>
             
             <button class="btn btn-red">
                 <i class="fa-solid fa-trash-can"></i>
-                <span data-lang="btn_reset">စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)</span>
+                <span id="btn-reset">စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)</span>
             </button>
         </div>
 
         <div class="form-group">
-            <label data-lang="label_title">စာအုပ်အမည် (Book Title)</label>
+            <label id="label-title">စာအုပ်အမည် (Book Title)</label>
             <input type="text" id="book-title" placeholder="သုမ... ဖြစ်တည်မှု အပိုင်းအစများ">
         </div>
 
         <div class="form-group">
-            <label data-lang="label_author">စာရေးဆရာ (Author)</label>
+            <label id="label-author">စာရေးဆရာ (Author)</label>
             <input type="text" id="book-author" placeholder="သဘောတရား ဆရာလေးတစ်ရွာ">
         </div>
 
         <div class="form-group">
-            <label data-lang="label_cover">မျက်နှာဖုံးပုံ (Cover Image)</label>
+            <label id="label-cover">မျက်နှာဖုံးပုံ (Cover Image)</label>
             <div class="file-input-wrapper">
-                <button class="btn-file" data-lang="btn_choose">Choose File</button>
-                <span class="file-name" data-lang="no_file">No file selected</span>
+                <button class="btn-file" id="btn-choose">Choose File</button>
+                <span class="file-name" id="no-file">No file selected</span>
             </div>
         </div>
 
         <div class="chapters-section">
-            <label data-lang="label_chapters">အခန်းများ (Chapters)</label>
+            <label id="label-chapters">အခန်းများ (Chapters)</label>
             <button class="btn-add-chapter">
                 <i class="fa-solid fa-plus"></i>
-                <span data-lang="btn_add_chapter">အခန်းတိုးမည် (Add Chapter)</span>
+                <span id="btn-add-chapter">အခန်းတိုးမည် (Add Chapter)</span>
             </button>
         </div>
     </div>
