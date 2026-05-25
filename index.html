@@ -1,1 +1,351 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web ePub Creator Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
 
+    <div class="app-container">
+        <header style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
+            <div class="logo" style="display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-book-open logo-icon" style="color: #f1c40f; font-size: 24px;"></i>
+                <span class="logo-text" style="font-size: 20px; font-weight: bold; color: #f1c40f;">Web ePub Creator Pro</span>
+            </div>
+            
+            <div class="controls" style="display: flex; gap: 8px; align-items: center;">
+                <button id="theme-toggle" class="control-btn" style="background: #1b243c; color: #f1c40f; border: 1px solid #2c3a59; padding: 8px 12px; border-radius: 8px; cursor: pointer;">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                <button id="lang-toggle" class="control-btn" style="background: #1b243c; color: #f1c40f; border: 1px solid #2c3a59; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">EN</button>
+                <button class="btn-logout" style="background: #c0392b; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 5px;">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span id="text-logout">ထွက်မည်</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="user-info" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <span class="user-email" style="color: #8fa0bc; font-size: 14px;"><i class="fa-regular fa-user"></i> naing5588@icloud.com</span>
+            <span class="badge-premium" style="background: #e67e22; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold;"><i class="fa-solid fa-crown"></i> Premium</span>
+        </div>
+
+        <div class="card backup-section">
+            <h3 id="backup-title">စာအုပ် BACKUP စီမံခန့်ခွဲမှု</h3>
+            <button id="main-btn-backup" class="btn btn-green"><i class="fa-solid fa-file-arrow-down"></i> <span id="btn-backup">လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)</span></button>
+            <button id="main-btn-load" class="btn btn-blue"><i class="fa-solid fa-file-arrow-up"></i> <span id="btn-load">စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup)</span></button>
+            <button id="main-btn-reset" class="btn btn-red"><i class="fa-solid fa-trash-can"></i> <span id="btn-reset">စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)</span></button>
+        </div>
+
+        <div class="form-group">
+            <label id="label-title">စာအုပ်အမည် (Book Title)</label>
+            <input type="text" id="book-title" placeholder="သုမ... ဖြစ်တည်မှု အပိုင်းအစများ">
+        </div>
+
+        <div class="form-group">
+            <label id="label-author">စာရေးဆရာ (Author)</label>
+            <input type="text" id="book-author" placeholder="သဘောတရား ဆရာလေးတစ်ရွာ">
+        </div>
+
+        <div class="form-group">
+            <label id="label-cover">မျက်နှာဖုံးပုံ (Cover Image)</label>
+            <div class="file-input-wrapper">
+                <input type="file" id="real-file-input" accept="image/*" style="display: none;">
+                <button class="btn-file" id="btn-choose">Choose File</button>
+                <span class="file-name" id="no-file">No file selected</span>
+            </div>
+        </div>
+
+        <div class="chapters-section" style="margin-bottom: 25px;">
+            <label id="label-chapters">အခန်းများ (Chapters)</label>
+            <div id="chapters-container" style="margin-bottom: 15px;"></div>
+            <button id="main-btn-add-chapter" class="btn-add-chapter"><i class="fa-solid fa-plus"></i> <span id="btn-add-chapter">အခန်းတိုးမည် (Add Chapter)</span></button>
+        </div>
+
+        <div class="download-section" style="margin-top: 30px; text-align: center;">
+            <button id="btn-download-epub" style="width: 100%; background: linear-gradient(135deg, #f39c12, #d35400); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 15px rgba(211, 84, 0, 0.3);">
+                <i class="fa-solid fa-cloud-arrow-down" style="font-size: 20px;"></i>
+                <span id="text-download">ePub ဖိုင် ထုတ်ယူမည် (Download)</span>
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const translations = {
+                my: {
+                    backup_title: "စာအုပ် BACKUP စီမံခန့်ခွဲမှု",
+                    btn_backup: "လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)",
+                    btn_load: "စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup)",
+                    btn_reset: "စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)",
+                    label_title: "စာအုပ်အမည် (Book Title)",
+                    label_author: "စာရေးဆရာ (Author)",
+                    label_cover: "မျက်နှာဖုံးပုံ (Cover Image)",
+                    btn_choose: "Choose File",
+                    no_file: "ရွေးချယ်ထားသော ဖိုင်မရှိပါ",
+                    label_chapters: "အခန်းများ (Chapters)",
+                    btn_add_chapter: "အခန်းတိုးမည် (Add Chapter)",
+                    text_logout: "ထွက်မည်",
+                    chapter_placeholder: "အခန်းခေါင်းစဉ် အမည်",
+                    content_placeholder: "ဤအခန်းအတွက် စာသားများကို ဤနေရာတွင် ရေးသားပါ...",
+                    chapter_img_btn: "အခန်းတွင်း ဓာတ်ပုံထည့်မည်",
+                    text_download: "ePub ဖိုင် ထုတ်ယူမည် (Download)"
+                },
+                en: {
+                    backup_title: "Book Backup Management",
+                    btn_backup: "Backup Current Book",
+                    btn_load: "Load Backup",
+                    btn_reset: "Reset for New Book",
+                    label_title: "Book Title",
+                    label_author: "Author",
+                    label_cover: "Cover Image",
+                    btn_choose: "Choose File",
+                    no_file: "No file selected",
+                    label_chapters: "Chapters",
+                    btn_add_chapter: "Add Chapter",
+                    text_logout: "Logout",
+                    chapter_placeholder: "Chapter Title",
+                    content_placeholder: "Write chapter contents here...",
+                    chapter_img_btn: "Add Chapter Image",
+                    text_download: "Download ePub File"
+                }
+            };
+
+            const themeToggle = document.getElementById('theme-toggle');
+            const langToggle = document.getElementById('lang-toggle');
+            const htmlEl = document.documentElement;
+            let currentLang = 'my'; 
+
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const currentTheme = htmlEl.getAttribute('data-theme');
+                    if (currentTheme === 'dark') {
+                        htmlEl.setAttribute('data-theme', 'light');
+                        themeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>'; 
+                    } else {
+                        htmlEl.setAttribute('data-theme', 'dark');
+                        themeToggle.innerHTML = '<i class="fa-solid fa-moon"></i>'; 
+                    }
+                });
+            }
+
+            if (langToggle) {
+                langToggle.addEventListener('click', () => {
+                    currentLang = currentLang === 'my' ? 'en' : 'my';
+                    langToggle.innerText = currentLang === 'my' ? 'EN' : 'မြန်မာ';
+                    
+                    document.getElementById('backup-title').innerText = translations[currentLang].backup_title;
+                    document.getElementById('btn-backup').innerText = translations[currentLang].btn_backup;
+                    document.getElementById('btn-load').innerText = translations[currentLang].btn_load;
+                    document.getElementById('btn-reset').innerText = translations[currentLang].btn_reset;
+                    document.getElementById('label-title').innerText = translations[currentLang].label_title;
+                    document.getElementById('label-author').innerText = translations[currentLang].label_author;
+                    document.getElementById('label-cover').innerText = translations[currentLang].label_cover;
+                    document.getElementById('btn-choose').innerText = translations[currentLang].btn_choose;
+                    
+                    if(document.getElementById('real-file-input').files.length === 0) {
+                        document.getElementById('no-file').innerText = translations[currentLang].no_file;
+                    }
+                    
+                    document.getElementById('label-chapters').innerText = translations[currentLang].label_chapters;
+                    document.getElementById('btn-add-chapter').innerText = translations[currentLang].btn_add_chapter;
+                    document.getElementById('text-logout').innerText = translations[currentLang].text_logout;
+                    document.getElementById('text-download').innerText = translations[currentLang].text_download;
+
+                    document.querySelectorAll('.ch-title-input').forEach(el => el.placeholder = translations[currentLang].chapter_placeholder);
+                    document.querySelectorAll('.ch-content-input').forEach(el => el.placeholder = translations[currentLang].content_placeholder);
+                    document.querySelectorAll('.ch-img-btn-text').forEach(el => el.innerText = translations[currentLang].chapter_img_btn);
+                });
+            }
+
+            const realFileInput = document.getElementById('real-file-input');
+            const customFileBtn = document.getElementById('btn-choose');
+            const fileNameDisplay = document.getElementById('no-file');
+
+            customFileBtn.addEventListener('click', () => realFileInput.click());
+            realFileInput.addEventListener('change', () => {
+                fileNameDisplay.innerText = realFileInput.files.length > 0 ? realFileInput.files[0].name : translations[currentLang].no_file;
+            });
+
+            const addChapterBtn = document.getElementById('main-btn-add-chapter');
+            const chaptersContainer = document.getElementById('chapters-container');
+            let chapterCount = 0;
+
+            addChapterBtn.addEventListener('click', () => {
+                chapterCount++;
+                const chapterCard = document.createElement('div');
+                chapterCard.className = "card";
+                chapterCard.style.cssText = "padding: 15px; margin-bottom: 15px; background-color: var(--card-bg); border: 1px solid var(--input-border); border-radius: 12px;";
+                
+                chapterCard.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span style="font-weight: bold; font-size: 14px; color: #f1c40f;">Chapter ${chapterCount}</span>
+                        <button class="btn-delete-chapter" style="background: #c0392b; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    <input type="text" class="ch-title-input" placeholder="${translations[currentLang].chapter_placeholder}" style="width: 100%; padding: 10px; margin-bottom: 10px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-color);">
+                    <textarea class="ch-content-input" placeholder="${translations[currentLang].content_placeholder}" rows="4" style="width: 100%; padding: 10px; margin-bottom: 10px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-color); resize: vertical; font-family: inherit;"></textarea>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="file" class="ch-file-input" accept="image/*" style="display: none;">
+                        <button class="ch-custom-img-btn" style="background-color: #34495e; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                            <i class="fa-regular fa-image"></i> <span class="ch-img-btn-text">${translations[currentLang].chapter_img_btn}</span>
+                        </button>
+                        <span class="ch-file-name" style="font-size: 12px; color: var(--text-muted);">No file selected</span>
+                    </div>
+                `;
+                
+                chaptersContainer.appendChild(chapterCard);
+
+                const chFileInput = chapterCard.querySelector('.ch-file-input');
+                const chImgBtn = chapterCard.querySelector('.ch-custom-img-btn');
+                const chFileName = chapterCard.querySelector('.ch-file-name');
+
+                chImgBtn.addEventListener('click', () => chFileInput.click());
+                chFileInput.addEventListener('change', () => {
+                    chFileName.innerText = chFileInput.files.length > 0 ? chFileInput.files[0].name : "No file selected";
+                });
+
+                chapterCard.querySelector('.btn-delete-chapter').addEventListener('click', () => {
+                    chapterCard.remove();
+                });
+            });
+
+            const bookTitleInput = document.getElementById('book-title');
+            const bookAuthorInput = document.getElementById('book-author');
+
+            document.getElementById('main-btn-backup').addEventListener('click', () => {
+                const bookData = { title: bookTitleInput.value, author: bookAuthorInput.value };
+                localStorage.setItem('epub_book_backup', JSON.stringify(bookData));
+                alert(currentLang === 'my' ? "စာအုပ်အချက်အလက်များကို Backup သိမ်းဆည်းပြီးပါပြီ။" : "Book data successfully backed up!");
+            });
+
+            document.getElementById('main-btn-load').addEventListener('click', () => {
+                const savedData = localStorage.getItem('epub_book_backup');
+                if (savedData) {
+                    const bookData = JSON.parse(savedData);
+                    bookTitleInput.value = bookData.title;
+                    bookAuthorInput.value = bookData.author;
+                    alert(currentLang === 'my' ? "Backup ဖိုင်ကို ပြန်တင်ပြီးပါပြီ။" : "Backup loaded successfully!");
+                } else {
+                    alert(currentLang === 'my' ? "ပြန်တင်ရန် သိမ်းဆည်းထားသော Backup မရှိသေးပါ။" : "No saved backup found!");
+                }
+            });
+
+            document.getElementById('main-btn-reset').addEventListener('click', () => {
+                if (confirm(currentLang === 'my' ? "အစကပြန်စမှာ သေချာပါသလား။" : "Are you sure you want to reset?")) {
+                    bookTitleInput.value = ''; bookAuthorInput.value = ''; realFileInput.value = '';
+                    fileNameDisplay.innerText = translations[currentLang].no_file;
+                    chaptersContainer.innerHTML = ''; chapterCount = 0;
+                }
+            });
+
+            // စနစ်တကျ ePub ဖိုင်စစ်စစ် ထုတ်ပေးမည့် Download Function
+            document.getElementById('btn-download-epub').addEventListener('click', async () => {
+                const title = bookTitleInput.value.trim() || "Untitled Book";
+                const author = bookAuthorInput.value.trim() || "Unknown Author";
+
+                if (!bookTitleInput.value.trim()) {
+                    alert(currentLang === 'my' ? "ကျေးဇူးပြု၍ စာအုပ်အမည်ကို အရင်ဖြည့်စွက်ပေးပါ။" : "Please enter the Book Title first.");
+                    return;
+                }
+
+                const zip = new JSZip();
+                
+                // 1. mimetype ဖိုင် (မဖြစ်မနေပါရမည်၊ compression မလုပ်ရ)
+                zip.file("mimetype", "application/epub+zip", { compression: "STORE" });
+
+                // 2. META-INF/container.xml တည်ဆောက်ခြင်း
+                const containerXml = `<?xml version="1.0" encoding="UTF-8"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+    <rootfiles>
+        <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
+    </rootfiles>
+</container>`;
+                zip.folder("META-INF").file("container.xml", containerXml);
+
+                // 3. Chapters များကို HTML စာမျက်နှာများအဖြစ် ပြောင်းလဲခြင်း
+                const chapterCards = chaptersContainer.querySelectorAll('.card');
+                let manifestItems = '';
+                let spineItems = '';
+
+                if (chapterCards.length === 0) {
+                    const chHtml = `<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>Introduction</title></head>
+<body><h1>${title}</h1><p>Welcome to your new book.</p></body>
+</html>`;
+                    zip.folder("OEBPS").file("chapter1.xhtml", chHtml);
+                    manifestItems += `<item id="chapter1" href="chapter1.xhtml" media-type="application/xhtml+xml"/>\n`;
+                    spineItems += `<itemref idref="chapter1"/>\n`;
+                } else {
+                    chapterCards.forEach((card, index) => {
+                        const chTitle = card.querySelector('.ch-title-input').value.trim() || `Chapter ${index + 1}`;
+                        const chText = card.querySelector('.ch-content-input').value.trim() || "";
+                        const paragraphs = chText.split('\n').map(p => `<p>${p}</p>`).join('');
+
+                        const chHtml = `<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>${chTitle}</title></head>
+<body><h2>${chTitle}</h2>${paragraphs}</body>
+</html>`;
+                        zip.folder("OEBPS").file(`chapter${index + 1}.xhtml", chHtml);
+                        manifestItems += `<item id="chapter${index + 1}" href="chapter${index + 1}.xhtml" media-type="application/xhtml+xml"/>\n`;
+                        spineItems += `<itemref idref="chapter${index + 1}"/>\n`;
+                    });
+                }
+
+                // 4. OEBPS/content.opf (စာအုပ် မေတာဒေတာ ဖိုင်ဖွဲ့စည်းပုံ)
+                const contentOpf = `<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="2.0">
+    <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+        <dc:title>${title}</dc:title>
+        <dc:creator>${author}</dc:creator>
+        <dc:identifier id="bookid">urn:uuid:${Math.random().toString(36).substring(2)}</dc:identifier>
+        <dc:language>my</dc:language>
+    </metadata>
+    <manifest>
+        <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+        ${manifestItems}
+    </manifest>
+    <spine toc="ncx">
+        ${spineItems}
+    </spine>
+</package>`;
+                zip.folder("OEBPS").file("content.opf", contentOpf);
+
+                // 5. OEBPS/toc.ncx (မာတိကာ လမ်းညွှန်ချက်)
+                const tocNcx = `<?xml version="1.0" encoding="UTF-8"?>
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+    <head>
+        <meta name="dtb:uid" content="urn:uuid:12345"/>
+        <meta name="dtb:depth" content="1"/>
+    </head>
+    <docTitle><text>${title}</text></docTitle>
+    <navMap>
+        <navPoint id="navpoint-1" playOrder="1">
+            <navLabel><text>Start</text></navLabel>
+            <content src="chapter1.xhtml"/>
+        </navPoint>
+    </navMap>
+</ncx>`;
+                zip.folder("OEBPS").file("toc.ncx", tocNcx);
+
+                // ePub ကို Zip အဖြစ်ထုပ်ပြီး တိုက်ရိုက်ဆွဲချခြင်း
+                const content = await zip.generateAsync({ type: "blob", mimeType: "application/epub+zip" });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = `${title.replace(/\s+/g, '_')}.epub`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        });
+    </script>
+</body>
+</html>
