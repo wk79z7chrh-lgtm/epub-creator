@@ -73,6 +73,8 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const translations = {
@@ -119,7 +121,6 @@
             const htmlEl = document.documentElement;
             let currentLang = 'my'; 
 
-            // Night Mode
             if (themeToggle) {
                 themeToggle.addEventListener('click', () => {
                     const currentTheme = htmlEl.getAttribute('data-theme');
@@ -133,7 +134,6 @@
                 });
             }
 
-            // Language Logic
             if (langToggle) {
                 langToggle.addEventListener('click', () => {
                     currentLang = currentLang === 'my' ? 'en' : 'my';
@@ -163,7 +163,6 @@
                 });
             }
 
-            // Cover File Input
             const realFileInput = document.getElementById('real-file-input');
             const customFileBtn = document.getElementById('btn-choose');
             const fileNameDisplay = document.getElementById('no-file');
@@ -173,7 +172,6 @@
                 fileNameDisplay.innerText = realFileInput.files.length > 0 ? realFileInput.files[0].name : translations[currentLang].no_file;
             });
 
-            // Add Chapter Logic
             const addChapterBtn = document.getElementById('main-btn-add-chapter');
             const chaptersContainer = document.getElementById('chapters-container');
             let chapterCount = 0;
@@ -216,7 +214,6 @@
                 });
             });
 
-            // Backup & Load Logics
             const bookTitleInput = document.getElementById('book-title');
             const bookAuthorInput = document.getElementById('book-author');
 
@@ -246,8 +243,8 @@
                 }
             });
 
-            // ၇။ ePub Download ပြုလုပ်ပေးမည့် လုပ်ဆောင်ချက်သစ်
-            document.getElementById('btn-download-epub').addEventListener('click', () => {
+            // စနစ်တကျ ePub ဖိုင်စစ်စစ် ထုတ်ပေးမည့် Download Function
+            document.getElementById('btn-download-epub').addEventListener('click', async () => {
                 const title = bookTitleInput.value.trim() || "Untitled Book";
                 const author = bookAuthorInput.value.trim() || "Unknown Author";
 
@@ -256,24 +253,93 @@
                     return;
                 }
 
-                // ePub File တည်ဆောက်ရန် ရိုးရှင်းသော စာသားအခြေခံတည်ဆောက်ပုံ
-                let epubContent = `BOOK: ${title}\nAUTHOR: ${author}\n\n`;
+                const zip = new JSZip();
                 
+                // 1. mimetype ဖိုင် (မဖြစ်မနေပါရမည်၊ compression မလုပ်ရ)
+                zip.file("mimetype", "application/epub+zip", { compression: "STORE" });
+
+                // 2. META-INF/container.xml တည်ဆောက်ခြင်း
+                const containerXml = `<?xml version="1.0" encoding="UTF-8"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+    <rootfiles>
+        <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
+    </rootfiles>
+</container>`;
+                zip.folder("META-INF").file("container.xml", containerXml);
+
+                // 3. Chapters များကို HTML စာမျက်နှာများအဖြစ် ပြောင်းလဲခြင်း
                 const chapterCards = chaptersContainer.querySelectorAll('.card');
-                if(chapterCards.length === 0) {
-                    epubContent += "No chapters added.";
+                let manifestItems = '';
+                let spineItems = '';
+
+                if (chapterCards.length === 0) {
+                    const chHtml = `<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>Introduction</title></head>
+<body><h1>${title}</h1><p>Welcome to your new book.</p></body>
+</html>`;
+                    zip.folder("OEBPS").file("chapter1.xhtml", chHtml);
+                    manifestItems += `<item id="chapter1" href="chapter1.xhtml" media-type="application/xhtml+xml"/>\n`;
+                    spineItems += `<itemref idref="chapter1"/>\n`;
                 } else {
                     chapterCards.forEach((card, index) => {
                         const chTitle = card.querySelector('.ch-title-input').value.trim() || `Chapter ${index + 1}`;
-                        const chText = card.querySelector('.ch-content-input').value.trim() || "(No content)";
-                        epubContent += `=========================\n${chTitle}\n=========================\n${chText}\n\n`;
+                        const chText = card.querySelector('.ch-content-input').value.trim() || "";
+                        const paragraphs = chText.split('\n').map(p => `<p>${p}</p>`).join('');
+
+                        const chHtml = `<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>${chTitle}</title></head>
+<body><h2>${chTitle}</h2>${paragraphs}</body>
+</html>`;
+                        zip.folder("OEBPS").file(`chapter${index + 1}.xhtml", chHtml);
+                        manifestItems += `<item id="chapter${index + 1}" href="chapter${index + 1}.xhtml" media-type="application/xhtml+xml"/>\n`;
+                        spineItems += `<itemref idref="chapter${index + 1}"/>\n`;
                     });
                 }
 
-                // File အဖြစ်ပြောင်းလဲပြီး Download ချပေးခြင်း
-                const blob = new Blob([epubContent], { type: "application/epub+zip" });
+                // 4. OEBPS/content.opf (စာအုပ် မေတာဒေတာ ဖိုင်ဖွဲ့စည်းပုံ)
+                const contentOpf = `<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="2.0">
+    <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+        <dc:title>${title}</dc:title>
+        <dc:creator>${author}</dc:creator>
+        <dc:identifier id="bookid">urn:uuid:${Math.random().toString(36).substring(2)}</dc:identifier>
+        <dc:language>my</dc:language>
+    </metadata>
+    <manifest>
+        <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+        ${manifestItems}
+    </manifest>
+    <spine toc="ncx">
+        ${spineItems}
+    </spine>
+</package>`;
+                zip.folder("OEBPS").file("content.opf", contentOpf);
+
+                // 5. OEBPS/toc.ncx (မာတိကာ လမ်းညွှန်ချက်)
+                const tocNcx = `<?xml version="1.0" encoding="UTF-8"?>
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+    <head>
+        <meta name="dtb:uid" content="urn:uuid:12345"/>
+        <meta name="dtb:depth" content="1"/>
+    </head>
+    <docTitle><text>${title}</text></docTitle>
+    <navMap>
+        <navPoint id="navpoint-1" playOrder="1">
+            <navLabel><text>Start</text></navLabel>
+            <content src="chapter1.xhtml"/>
+        </navPoint>
+    </navMap>
+</ncx>`;
+                zip.folder("OEBPS").file("toc.ncx", tocNcx);
+
+                // ePub ကို Zip အဖြစ်ထုပ်ပြီး တိုက်ရိုက်ဆွဲချခြင်း
+                const content = await zip.generateAsync({ type: "blob", mimeType: "application/epub+zip" });
                 const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
+                link.href = URL.createObjectURL(content);
                 link.download = `${title.replace(/\s+/g, '_')}.epub`;
                 document.body.appendChild(link);
                 link.click();
