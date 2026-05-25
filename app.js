@@ -1,20 +1,13 @@
 const editor = document.getElementById('editor');
 
-// ၁။ Logout လုပ်ခြင်း
-function logout() {
-    localStorage.clear();
-    alert("အောင်မြင်စွာ ထွက်ခွာနိုင်ပါပြီ။");
-    window.location.href = "login.html"; // သင့် login စာမျက်နှာနာမည်အတိုင်း ပြင်ပါ
-}
-
-// ၂။ Auto-save
+// Auto-save
 editor.addEventListener('input', () => localStorage.setItem('savedContent', editor.innerHTML));
 window.onload = () => {
     const saved = localStorage.getItem('savedContent');
     if (saved) editor.innerHTML = saved;
 };
 
-// ၃။ အခန်းသစ်
+// အခန်းသစ်
 function addChapter() {
     const div = document.createElement('div');
     div.className = 'chapter';
@@ -22,7 +15,7 @@ function addChapter() {
     editor.appendChild(div);
 }
 
-// ၄။ ပုံထည့်
+// ပုံထည့်
 document.getElementById('imgInput').addEventListener('change', function(e) {
     for (let file of e.target.files) {
         const reader = new FileReader();
@@ -36,7 +29,7 @@ document.getElementById('imgInput').addEventListener('change', function(e) {
     }
 });
 
-// ၅။ အကုန်ဖျက်
+// အကုန်ဖျက်
 function resetEditor() {
     if(confirm("အကုန်ဖျက်မှာ သေချာပြီလား?")) {
         editor.innerHTML = "";
@@ -44,7 +37,7 @@ function resetEditor() {
     }
 }
 
-// ၆။ ePub ထုတ်ခြင်း
+// ePub ထုတ်ခြင်း
 async function generateEPUB() {
     const zip = new JSZip();
     zip.file("mimetype", "application/epub+zip");
