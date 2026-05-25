@@ -17,9 +17,7 @@
             </div>
             
             <div class="controls">
-                <button id="theme-toggle" class="control-btn">
-                    <i class="fa-solid fa-moon"></i>
-                </button>
+                <button id="theme-toggle" class="control-btn"><i class="fa-solid fa-moon"></i></button>
                 <button id="lang-toggle" class="control-btn">EN</button>
             </div>
         </header>
@@ -31,21 +29,9 @@
 
         <div class="card backup-section">
             <h3 id="backup-title">စာအုပ် BACKUP စီမံခန့်ခွဲမှု</h3>
-            
-            <button class="btn btn-green">
-                <i class="fa-solid fa-file-arrow-down"></i>
-                <span id="btn-backup">လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)</span>
-            </button>
-            
-            <button class="btn btn-blue">
-                <i class="fa-solid fa-file-arrow-up"></i>
-                <span id="btn-load">စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup)</span>
-            </button>
-            
-            <button class="btn btn-red">
-                <i class="fa-solid fa-trash-can"></i>
-                <span id="btn-reset">စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)</span>
-            </button>
+            <button class="btn btn-green"><i class="fa-solid fa-file-arrow-down"></i> <span id="btn-backup">လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)</span></button>
+            <button class="btn btn-blue"><i class="fa-solid fa-file-arrow-up"></i> <span id="btn-load">စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup)</span></button>
+            <button class="btn btn-red"><i class="fa-solid fa-trash-can"></i> <span id="btn-reset">စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)</span></button>
         </div>
 
         <div class="form-group">
@@ -68,13 +54,78 @@
 
         <div class="chapters-section">
             <label id="label-chapters">အခန်းများ (Chapters)</label>
-            <button class="btn-add-chapter">
-                <i class="fa-solid fa-plus"></i>
-                <span id="btn-add-chapter">အခန်းတိုးမည် (Add Chapter)</span>
-            </button>
+            <button class="btn-add-chapter"><i class="fa-solid fa-plus"></i> <span id="btn-add-chapter">အခန်းတိုးမည် (Add Chapter)</span></button>
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const translations = {
+                my: {
+                    backup_title: "စာအုပ် BACKUP စီမံခန့်ခွဲမှု",
+                    btn_backup: "လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)",
+                    btn_load: "စာအုပ်ဖောင်း ပြန်တင်မည် (Load Backup)",
+                    btn_reset: "စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)",
+                    label_title: "စာအုပ်အမည် (Book Title)",
+                    label_author: "စာရေးဆရာ (Author)",
+                    label_cover: "မျက်နှာဖုံးပုံ (Cover Image)",
+                    btn_choose: "Choose File",
+                    no_file: "No file selected",
+                    label_chapters: "အခန်းများ (Chapters)",
+                    btn_add_chapter: "အခန်းတိုးမည် (Add Chapter)"
+                },
+                en: {
+                    backup_title: "Book Backup Management",
+                    btn_backup: "Backup Current Book",
+                    btn_load: "Load Backup",
+                    btn_reset: "Reset for New Book",
+                    label_title: "Book Title",
+                    label_author: "Author",
+                    label_cover: "Cover Image",
+                    btn_choose: "Choose File",
+                    no_file: "No file selected",
+                    label_chapters: "Chapters",
+                    btn_add_chapter: "Add Chapter"
+                }
+            };
+
+            const themeToggle = document.getElementById('theme-toggle');
+            const langToggle = document.getElementById('lang-toggle');
+            const htmlEl = document.documentElement;
+            let currentLang = 'my'; 
+
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const currentTheme = htmlEl.getAttribute('data-theme');
+                    if (currentTheme === 'dark') {
+                        htmlEl.setAttribute('data-theme', 'light');
+                        themeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>'; 
+                    } else {
+                        htmlEl.setAttribute('data-theme', 'dark');
+                        themeToggle.innerHTML = '<i class="fa-solid fa-moon"></i>'; 
+                    }
+                });
+            }
+
+            if (langToggle) {
+                langToggle.addEventListener('click', () => {
+                    currentLang = currentLang === 'my' ? 'en' : 'my';
+                    langToggle.innerText = currentLang === 'my' ? 'EN' : 'မြန်မာ';
+                    
+                    document.getElementById('backup-title').innerText = translations[currentLang].backup_title;
+                    document.getElementById('btn-backup').innerText = translations[currentLang].btn_backup;
+                    document.getElementById('btn-load').innerText = translations[currentLang].btn_load;
+                    document.getElementById('btn-reset').innerText = translations[currentLang].btn_reset;
+                    document.getElementById('label-title').innerText = translations[currentLang].label_title;
+                    document.getElementById('label-author').innerText = translations[currentLang].label_author;
+                    document.getElementById('label-cover').innerText = translations[currentLang].label_cover;
+                    document.getElementById('btn-choose').innerText = translations[currentLang].btn_choose;
+                    document.getElementById('no-file').innerText = translations[currentLang].no_file;
+                    document.getElementById('label-chapters').innerText = translations[currentLang].label_chapters;
+                    document.getElementById('btn-add-chapter').innerText = translations[currentLang].btn_add_chapter;
+                });
+            }
+        });
+    </script>
 </body>
 </html>
