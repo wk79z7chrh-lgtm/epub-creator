@@ -167,8 +167,8 @@
             const customFileBtn = document.getElementById('btn-choose');
             const fileNameDisplay = document.getElementById('no-file');
 
-            customFileBtn.addEventListener('click', () => realFileInput.click());
-            realFileInput.addEventListener('change', () => {
+            if(customFileBtn) customFileBtn.addEventListener('click', () => realFileInput.click());
+            if(realFileInput) realFileInput.addEventListener('change', () => {
                 fileNameDisplay.innerText = realFileInput.files.length > 0 ? realFileInput.files[0].name : translations[currentLang].no_file;
             });
 
@@ -176,43 +176,45 @@
             const chaptersContainer = document.getElementById('chapters-container');
             let chapterCount = 0;
 
-            addChapterBtn.addEventListener('click', () => {
-                chapterCount++;
-                const chapterCard = document.createElement('div');
-                chapterCard.className = "card";
-                chapterCard.style.cssText = "padding: 15px; margin-bottom: 15px; background-color: var(--card-bg); border: 1px solid var(--input-border); border-radius: 12px;";
-                
-                chapterCard.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <span style="font-weight: bold; font-size: 14px; color: #f1c40f;">Chapter ${chapterCount}</span>
-                        <button class="btn-delete-chapter" style="background: #c0392b; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                    <input type="text" class="ch-title-input" placeholder="${translations[currentLang].chapter_placeholder}" style="width: 100%; padding: 10px; margin-bottom: 10px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-color);">
-                    <textarea class="ch-content-input" placeholder="${translations[currentLang].content_placeholder}" rows="4" style="width: 100%; padding: 10px; margin-bottom: 10px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-color); resize: vertical; font-family: inherit;"></textarea>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <input type="file" class="ch-file-input" accept="image/*" style="display: none;">
-                        <button class="ch-custom-img-btn" style="background-color: #34495e; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;">
-                            <i class="fa-regular fa-image"></i> <span class="ch-img-btn-text">${translations[currentLang].chapter_img_btn}</span>
-                        </button>
-                        <span class="ch-file-name" style="font-size: 12px; color: var(--text-muted);">No file selected</span>
-                    </div>
-                `;
-                
-                chaptersContainer.appendChild(chapterCard);
+            if(addChapterBtn) {
+                addChapterBtn.addEventListener('click', () => {
+                    chapterCount++;
+                    const chapterCard = document.createElement('div');
+                    chapterCard.className = "card chapter-card-item";
+                    chapterCard.style.cssText = "padding: 15px; margin-bottom: 15px; background-color: var(--card-bg); border: 1px solid var(--input-border); border-radius: 12px;";
+                    
+                    chapterCard.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-weight: bold; font-size: 14px; color: #f1c40f;">Chapter ${chapterCount}</span>
+                            <button class="btn-delete-chapter" style="background: #c0392b; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <input type="text" class="ch-title-input" placeholder="${translations[currentLang].chapter_placeholder}" style="width: 100%; padding: 10px; margin-bottom: 10px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-color);">
+                        <textarea class="ch-content-input" placeholder="${translations[currentLang].content_placeholder}" rows="4" style="width: 100%; padding: 10px; margin-bottom: 10px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-color); resize: vertical; font-family: inherit;"></textarea>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="file" class="ch-file-input" accept="image/*" style="display: none;">
+                            <button class="ch-custom-img-btn" style="background-color: #34495e; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                                <i class="fa-regular fa-image"></i> <span class="ch-img-btn-text">${translations[currentLang].chapter_img_btn}</span>
+                            </button>
+                            <span class="ch-file-name" style="font-size: 12px; color: var(--text-muted);">No file selected</span>
+                        </div>
+                    `;
+                    
+                    chaptersContainer.appendChild(chapterCard);
 
-                const chFileInput = chapterCard.querySelector('.ch-file-input');
-                const chImgBtn = chapterCard.querySelector('.ch-custom-img-btn');
-                const chFileName = chapterCard.querySelector('.ch-file-name');
+                    const chFileInput = chapterCard.querySelector('.ch-file-input');
+                    const chImgBtn = chapterCard.querySelector('.ch-custom-img-btn');
+                    const chFileName = chapterCard.querySelector('.ch-file-name');
 
-                chImgBtn.addEventListener('click', () => chFileInput.click());
-                chFileInput.addEventListener('change', () => {
-                    chFileName.innerText = chFileInput.files.length > 0 ? chFileInput.files[0].name : "No file selected";
+                    chImgBtn.addEventListener('click', () => chFileInput.click());
+                    chFileInput.addEventListener('change', () => {
+                        chFileName.innerText = chFileInput.files.length > 0 ? chFileInput.files[0].name : "No file selected";
+                    });
+
+                    chapterCard.querySelector('.btn-delete-chapter').addEventListener('click', () => {
+                        chapterCard.remove();
+                    });
                 });
-
-                chapterCard.querySelector('.btn-delete-chapter').addEventListener('click', () => {
-                    chapterCard.remove();
-                });
-            });
+            }
 
             const bookTitleInput = document.getElementById('book-title');
             const bookAuthorInput = document.getElementById('book-author');
@@ -243,7 +245,7 @@
                 }
             });
 
-            // စနစ်တကျ ePub ဖိုင်စစ်စစ် ထုတ်ပေးမည့် Download Function
+            // ePub စနစ်တကျ ထုတ်ယူပေးမည့် လုပ်ဆောင်ချက်
             document.getElementById('btn-download-epub').addEventListener('click', async () => {
                 const title = bookTitleInput.value.trim() || "Untitled Book";
                 const author = bookAuthorInput.value.trim() || "Unknown Author";
@@ -254,11 +256,8 @@
                 }
 
                 const zip = new JSZip();
-                
-                // 1. mimetype ဖိုင် (မဖြစ်မနေပါရမည်၊ compression မလုပ်ရ)
                 zip.file("mimetype", "application/epub+zip", { compression: "STORE" });
 
-                // 2. META-INF/container.xml တည်ဆောက်ခြင်း
                 const containerXml = `<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
     <rootfiles>
@@ -267,8 +266,7 @@
 </container>`;
                 zip.folder("META-INF").file("container.xml", containerXml);
 
-                // 3. Chapters များကို HTML စာမျက်နှာများအဖြစ် ပြောင်းလဲခြင်း
-                const chapterCards = chaptersContainer.querySelectorAll('.card');
+                const chapterCards = chaptersContainer.querySelectorAll('.chapter-card-item');
                 let manifestItems = '';
                 let spineItems = '';
 
@@ -294,13 +292,12 @@
 <head><title>${chTitle}</title></head>
 <body><h2>${chTitle}</h2>${paragraphs}</body>
 </html>`;
-                        zip.folder("OEBPS").file(`chapter${index + 1}.xhtml", chHtml);
+                        zip.folder("OEBPS").file(`chapter${index + 1}.xhtml`, chHtml);
                         manifestItems += `<item id="chapter${index + 1}" href="chapter${index + 1}.xhtml" media-type="application/xhtml+xml"/>\n`;
                         spineItems += `<itemref idref="chapter${index + 1}"/>\n`;
                     });
                 }
 
-                // 4. OEBPS/content.opf (စာအုပ် မေတာဒေတာ ဖိုင်ဖွဲ့စည်းပုံ)
                 const contentOpf = `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="2.0">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -319,7 +316,6 @@
 </package>`;
                 zip.folder("OEBPS").file("content.opf", contentOpf);
 
-                // 5. OEBPS/toc.ncx (မာတိကာ လမ်းညွှန်ချက်)
                 const tocNcx = `<?xml version="1.0" encoding="UTF-8"?>
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
     <head>
@@ -336,7 +332,6 @@
 </ncx>`;
                 zip.folder("OEBPS").file("toc.ncx", tocNcx);
 
-                // ePub ကို Zip အဖြစ်ထုပ်ပြီး တိုက်ရိုက်ဆွဲချခြင်း
                 const content = await zip.generateAsync({ type: "blob", mimeType: "application/epub+zip" });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(content);
