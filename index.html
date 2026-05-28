@@ -1,6 +1,29 @@
 <!DOCTYPE html>
 <html lang="my">
-<head>
+<head><!-- Settings Container: Header ရဲ့ ညာဘက်အပေါ်မှာ နေရာချရန် -->
+<div class="settings-container">
+  
+  <!-- Language Selector -->
+  <div class="language-dropdown">
+    <select id="langSelect" onchange="changeLanguage(this.value)">
+      <option value="my">မြန်မာ</option>
+      <option value="en">English</option>
+    </select>
+  </div>
+
+  <!-- Night Mode Toggle Switch -->
+  <div class="theme-switch-wrapper">
+    <label class="theme-switch" for="checkbox">
+      <input type="checkbox" id="checkbox" />
+      <div class="slider round">
+        <span class="icon-sun">☀️</span>
+        <span class="icon-moon">🌙</span>
+      </div>
+    </label>
+  </div>
+
+</d
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web ePub Creator Pro</title>
