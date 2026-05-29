@@ -193,3 +193,73 @@ async function exportToBackupFile() {
         alert("Backup ဖိုင်ထုတ်ယူမှု မအောင်မြင်ပါ: " + error.message);
     }
 }
+// ====== Night Mode Logic ======
+const toggleSwitch = document.querySelector('#checkbox');
+const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : 'dark'; // Default ကို dark ထားထားပါတယ်
+
+// စတင်ပွင့်ချိန်မှာ Theme စစ်ဆေးခြင်း
+if (currentTheme) {
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    if (currentTheme === 'dark') {
+        toggleSwitch.checked = true;
+    }
+}
+
+// Theme ပြောင်းလဲချိန်မှာ အလုပ်လုပ်မည့် function
+function switchTheme(e) {
+    if (e.target.checked) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+    }    
+}
+toggleSwitch.addEventListener('change', switchTheme, false);
+
+
+// ====== Language Translation Data ======
+const translations = {
+  en: {
+    backupTitle: "Book BACKUP Management",
+    backupBtn: "Backup Current Book",
+    loadBtn: "Load Backup",
+    resetBtn: "Reset for New Book",
+    bookTitle: "Book Title",
+    author: "Author",
+    cover: "Cover Image",
+    chapters: "Chapters",
+    addChapter: "Add Chapter",
+    exportBtn: "Export ePub File"
+  },
+  my: {
+    backupTitle: "စာအုပ် BACKUP စီမံခန့်ခွဲမှု",
+    backupBtn: "လက်ရှိစာအုပ်ကို ဖိုင်သိမ်းဆည်းမည် (Backup)",
+    loadBtn: "စာအုပ်ဟောင်း ပြန်တင်မည် (Load Backup)",
+    resetBtn: "စာအုပ်အသစ်အတွက် အစကပြန်စမည် (Reset)",
+    bookTitle: "စာအုပ်အမည် (Book Title)",
+    author: "စာရေးဆရာ (Author)",
+    cover: "မျက်နှာဖုံးပုံ (Cover Image)",
+    chapters: "အခန်းများ (Chapters)",
+    addChapter: "အခန်းတိုးမည် (Add Chapter)",
+    exportBtn: "ePub ဖိုင် ထုတ်ယူမည်"
+  }
+};
+
+// ဘာသာစကားပြောင်းလဲခြင်း function
+function changeLanguage(lang) {
+  localStorage.setItem('selectedLang', lang);
+  
+  // UI ပေါ်က Text element တွေကို ID လိုက်ပြီး ပြောင်းလဲခြင်း
+  // (မှတ်ချက် - မိမိ HTML ID များနှင့် ကိုက်ညီအောင် ပြန်ပြင်ပေးရန် လိုအပ်ပါသည်)
+  document.getElementById('backupHeader').innerText = translations[lang].backupTitle;
+  document.getElementById('btnBackup').innerText = translations[lang].backupBtn;
+  document.getElementById('btnLoad').innerText = translations[lang].loadBtn;
+  document.getElementById('btnReset').innerText = translations[lang].resetBtn;
+  // ... ကျန်ရှိသော Text Label များကိုလည်း ထိုနည်းတူ ပြောင်းလဲနိုင်ပါသည်။
+}
+
+// စတင်ပွင့်ချိန်မှာ ရွေးထားခဲ့ဖူးသော ဘာသာစကားကို စစ်ဆေးခြင်း
+const savedLang = localStorage.getItem('selectedLang') || 'my';
+document.getElementById('langSelect').value = savedLang;
+// changeLanguage(savedLang); // စာမျက်နှာ စပွင့်ချိန် text များပြောင်းရန် comment ဖြုတ်ပါ
