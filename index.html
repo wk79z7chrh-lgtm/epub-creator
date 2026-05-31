@@ -14,16 +14,16 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap');
-        body { font-family: 'Padauk', sans-serif; }
+        body { font-family: 'Padauk', sans-serif; transition: background-color 0.3s, color 0.3s; }
         
-        /* 🔥 iPad နှင့် Layout ပျက်ခြင်းမှ ကာကွယ်ရန် တင်းကျပ်သော Custom Style များ */
+        /* 🔥 iPad Layout ပျက်ခြင်းမှ ကာကွယ်ရန် တင်းကျပ်သော Custom Style များ */
         .tox-tinymce { 
             border-radius: 0.5rem !important; 
             border: 1px solid #334155 !important; 
             width: 100% !important;
-            min-height: 350px !important; /* iPad မှာ ကျုံ့မသွားစေရန် အနည်းဆုံးအမြင့် သတ်မှတ်ခြင်း */
+            min-height: 350px !important;
+            transition: border-color 0.3s;
         }
-        /* Editor တက်မလာခင် မူလ Textarea အကွက်ကိုလည်း အလှဆင်ထားခြင်း */
         #editor {
             width: 100% !important;
             min-height: 350px !important;
@@ -31,6 +31,33 @@
             color: #f1f5f9;
             border-radius: 0.5rem;
             padding: 12px;
+        }
+
+        /* 🌙 Night Mode (Pure Black) Class အမည်းရောင်အတွက် Custom Variables */
+        body.night-mode {
+            background-color: #030712 !important; /* Pure Black-ish Gray */
+        }
+        body.night-mode .bg-slate-800 {
+            background-color: #111827 !important;
+            border-color: #1f2937 !important;
+        }
+        body.night-mode .bg-slate-800\/60 {
+            background-color: rgba(17, 24, 39, 0.6) !important;
+            border-color: rgba(31, 41, 55, 0.6) !important;
+        }
+        body.night-mode .bg-slate-800\/40 {
+            background-color: rgba(17, 24, 39, 0.4) !important;
+            border-color: rgba(31, 41, 55, 0.4) !important;
+        }
+        body.night-mode input, body.night-mode p, body.night-mode label {
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        body.night-mode input[type="text"] {
+            background-color: #030712 !important;
+            border-color: #374151 !important;
+        }
+        body.night-mode .tox-tinymce {
+            border-color: #374151 !important;
         }
     </style>
 </head>
@@ -84,9 +111,14 @@
                     <i class="fa-solid fa-book-open"></i> Web ePub Creator Pro
                 </h1>
                 
-                <button onclick="handleSignOut()" class="bg-slate-800 hover:bg-slate-700 text-rose-400 hover:text-rose-300 text-xs px-3 py-1.5 rounded-lg border border-slate-700 transition font-medium active:scale-95 flex items-center gap-1">
-                    <i class="fa-solid fa-right-from-bracket"></i> ထွက်မည်
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleNightMode()" id="night-mode-btn" class="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs px-3 py-1.5 rounded-lg border border-slate-700 transition font-medium active:scale-95 flex items-center gap-1">
+                        <i id="night-mode-icon" class="fa-solid fa-moon"></i> <span id="night-mode-text">Night Mode</span>
+                    </button>
+                    <button onclick="handleSignOut()" class="bg-slate-800 hover:bg-slate-700 text-rose-400 hover:text-rose-300 text-xs px-3 py-1.5 rounded-lg border border-slate-700 transition font-medium active:scale-95 flex items-center gap-1">
+                        <i class="fa-solid fa-right-from-bracket"></i> ထွက်မည်
+                    </button>
+                </div>
             </div>
 
             <div class="flex justify-between items-center bg-slate-800/40 px-3 py-2 rounded-lg border border-slate-800/60">
@@ -195,6 +227,39 @@
             });
         }
 
+        // 🌙 NIGHT MODE FUNCTION
+        function toggleNightMode() {
+            const body = document.body;
+            const icon = document.getElementById('night-mode-icon');
+            const text = document.getElementById('night-mode-text');
+            
+            body.classList.toggle('night-mode');
+            
+            if (body.classList.contains('night-mode')) {
+                localStorage.setItem('epub_night_mode', 'enabled');
+                icon.className = "fa-solid fa-sun";
+                text.innerText = "Normal Mode";
+            } else {
+                localStorage.setItem('epub_night_mode', 'disabled');
+                icon.className = "fa-solid fa-moon";
+                text.innerText = "Night Mode";
+            }
+        }
+
+        function applySavedNightMode() {
+            const nightModeSetting = localStorage.getItem('epub_night_mode');
+            const icon = document.getElementById('night-mode-icon');
+            const text = document.getElementById('night-mode-text');
+            
+            if (nightModeSetting === 'enabled') {
+                document.body.classList.add('night-mode');
+                if(icon && text) {
+                    icon.className = "fa-solid fa-sun";
+                    text.innerText = "Normal Mode";
+                }
+            }
+        }
+
         // 🔐 AUTHENTICATION SYSTEM
         function checkUserAuth() {
             const loggedInUser = localStorage.getItem('epub_user_session');
@@ -204,6 +269,7 @@
                 document.getElementById('user-display-email').innerHTML = `<i class="fa-solid fa-circle-user text-emerald-400 text-sm"></i> ${loggedInUser}`;
                 initTinyMCE();
                 loadBookDataFromDB();
+                applySavedNightMode(); // Night Mode အခြေအနေ ပြန်စစ်ခြင်း
             } else {
                 document.getElementById('main-app-screen').classList.add('hidden');
                 document.getElementById('auth-screen').classList.remove('hidden');
@@ -255,7 +321,7 @@
             }
         }
 
-        // 🔥 TinyMCE Init Function (Responsive နဲ့ iPad အတွက် သေချာအောင် ညှိထားသည်)
+        // TinyMCE Init Function
         function initTinyMCE() {
             if (tinymce.get('editor')) return;
             
